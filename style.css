@@ -1,0 +1,239 @@
+/* style.css - AI StyleMate Modern Design */
+
+/* 변수 설정: 한양대 파랑, 골드/베이지 보조색 */
+:root {
+    --hanyang-blue: #000080;        /* 한양대 대표색 - 진한 파랑 */
+    --accent-gold: #FFD700;         /* 골드 악센트 - 밝은 노랑 */
+    --accent-beige: #F5DEB3;        /* 베이지 악센트 */
+    --text-dark: #2C3E50;           /* 어두운 텍스트 (다크 네이비) */
+    --text-light: #ECF0F1;          /* 밝은 텍스트 (라이트 그레이) */
+    --bg-light: #F8F9FA;            /* 밝은 배경색 */
+    --card-bg: #FFFFFF;             /* 카드 배경색 */
+    --shadow-color: rgba(0, 0, 0, 0.1);
+
+    --font-montserrat: 'Montserrat', sans-serif;
+    --font-lato: 'Lato', sans-serif;
+}
+
+body {
+    font-family: var(--font-lato);
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+header {
+    width: 100%;
+    background-color: var(--hanyang-blue);
+    color: var(--text-light);
+    padding: 40px 20px;
+    box-shadow: 0 6px 15px var(--shadow-color);
+    margin-bottom: 30px;
+}
+
+h1 {
+    font-family: var(--font-montserrat);
+    font-weight: 700;
+    font-size: 3em;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.subtitle {
+    font-family: var(--font-lato);
+    font-size: 1.1em;
+    opacity: 0.9;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+h2 {
+    font-family: var(--font-montserrat);
+    font-weight: 600;
+    font-size: 1.8em;
+    color: var(--hanyang-blue);
+    border-bottom: 3px solid var(--accent-gold); 
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+#main-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    padding: 0 20px 50px;
+    max-width: 1300px;
+    width: 100%;
+}
+
+/* 카드 스타일 */
+.card {
+    background-color: var(--card-bg);
+    padding: 35px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px var(--shadow-color);
+    flex: 1 1 350px; 
+    min-width: 320px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* 페이드 인 애니메이션 */
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeIn 0.6s ease-out forwards;
+}
+.fade-in:nth-child(2) { animation-delay: 0.1s; }
+.fade-in:nth-child(3) { animation-delay: 0.2s; }
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* 버튼 스타일 */
+.btn {
+    font-family: var(--font-montserrat);
+    font-weight: 600;
+    border: none;
+    padding: 14px 28px;
+    margin: 10px 8px;
+    border-radius: 30px; 
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.primary-btn { 
+    background-color: var(--hanyang-blue);
+    color: var(--text-light);
+    box-shadow: 0 4px 10px rgba(0, 0, 128, 0.3);
+}
+.primary-btn:hover {
+    background-color: #000066;
+    transform: translateY(-3px) scale(1.02);
+}
+
+.model-select-btn { 
+    background-color: var(--accent-beige);
+    color: var(--text-dark);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.model-select-btn:hover {
+    background-color: #E0C18E;
+    transform: translateY(-2px);
+}
+
+.model-select-btn.active {
+    background-color: var(--accent-gold); 
+    color: var(--text-dark);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+    transform: scale(1.05);
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+/* 웹캠 및 결과 영역 */
+#webcam-container canvas {
+    border-radius: 10px;
+    border: 4px solid var(--hanyang-blue);
+    box-shadow: 0 0 12px rgba(0, 0, 128, 0.3);
+    width: 100%; 
+    height: auto;
+    max-width: 400px; 
+    display: block; 
+    margin: 0 auto;
+}
+
+#label-container {
+    margin-top: 25px;
+    text-align: left;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: var(--bg-light);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-family: var(--font-lato);
+}
+
+.prediction-item {
+    padding: 10px 0;
+    font-weight: 400;
+    border-bottom: 1px solid #E0E0E0; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.05em;
+}
+.prediction-item:last-child {
+    border-bottom: none;
+}
+.prediction-item strong {
+    color: var(--hanyang-blue);
+    font-weight: 700;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.5em;
+    }
+    .subtitle {
+        font-size: 1em;
+    }
+    h2 {
+        font-size: 1.5em;
+    }
+    .card {
+        padding: 25px;
+    }
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2em;
+    }
+    .subtitle {
+        font-size: 0.9em;
+    }
+    h2 {
+        font-size: 1.3em;
+    }
+    .card {
+        padding: 20px;
+    }
+    .btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+}
