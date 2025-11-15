@@ -39,7 +39,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
+    min-height: 10vh;
 }
 
 header {
@@ -201,7 +201,7 @@ h2 .fas {
     padding: 10px 15px; 
 }
 .model-select-btn.active {
-    background: var(--model-select-active-bg);
+    background: linear-gradient(45deg, #FFD700, #FFA500);
     color: var(--main-text-color);
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
     transform: scale(1.05);
@@ -221,7 +221,7 @@ h2 .fas {
     font-size: 1.2em;
     color: #007bff; 
 }
-/* 얼굴형 버튼 스타일 (재사용) */
+
 .face-type-buttons {
     display: flex;
     flex-wrap: wrap;
