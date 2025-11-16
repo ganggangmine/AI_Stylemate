@@ -219,7 +219,7 @@ h2 .fas {
 #style-selection-controls h3 {
     margin-bottom: 10px;
     font-size: 1.2em;
-    color: linear-gradient(to right, #FFC0CB, #ADD8E6); 
+    color: linear-gradient(to right, #6a82fb, #fc5c7d); 
 }
 
 .face-type-buttons {
@@ -242,7 +242,7 @@ h2 .fas {
     transition: background-color 0.2s, transform 0.2s;
 }
 .face-select-btn.active {
-    background: linear-gradient(to right, #FFC0CB, #ADD8E6); 
+    background: linear-gradient(to right, #6a82fb, #fc5c7d); 
     box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
 }
 
@@ -497,5 +497,6 @@ h2 .fas {
         justify-content: flex-start;
     }
 }
+
 
 
