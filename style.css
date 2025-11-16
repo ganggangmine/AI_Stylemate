@@ -86,9 +86,9 @@ header {
 
 
 h1 {
-    font-family: var(--font-montserrat);
+    font-family: "Jacques Francois", serif;
     font-weight: 800; 
-    font-size: 3.8em; 
+    font-size: 3.9em; 
     margin-bottom: 5px;
     letter-spacing: 2px; 
     color: var(--main-text-color); 
@@ -497,6 +497,7 @@ h2 .fas {
         justify-content: flex-start;
     }
 }
+
 
 
 
