@@ -2,10 +2,10 @@
 
 /* 변수 설정 */
 :root {
-    --gradient-start: #F9CCBB;        
-    --gradient-end: #C4DDE9;          
+    --gradient-start: #FFC0CB;        
+    --gradient-end: #ADD8E6;          
     --main-text-color: #333333;       
-    --h2-underline-color: linear-gradient(to right, #F9CCBB, #C4DDE9); 
+    --h2-underline-color: linear-gradient(to right, #FFC0CB, #ADD8E6); 
     --card-bg: #FFFFFF;               
     --bg-light: #F8F9FA;              
     --shadow-color: rgba(0, 0, 0, 0.1);
@@ -497,6 +497,7 @@ h2 .fas {
         justify-content: flex-start;
     }
 }
+
 
 
 
