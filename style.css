@@ -219,7 +219,7 @@ h2 .fas {
 #style-selection-controls h3 {
     margin-bottom: 10px;
     font-size: 1.2em;
-    color: #007bff; 
+    color: linear-gradient(to right, #FFC0CB, #ADD8E6); 
 }
 
 .face-type-buttons {
@@ -497,3 +497,4 @@ h2 .fas {
         justify-content: flex-start;
     }
 }
+
