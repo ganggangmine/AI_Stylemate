@@ -607,6 +607,74 @@ function downloadOverlayResult() {
     link.click();
 }
 
+async function eraseHairArea() {
+    let faceElement =
+        (currentSource === 'webcam')
+            ? webcam.canvas
+            : document.getElementById("uploaded-image");
+
+    if (!faceElement) {
+        alert("No face image available.");
+        return;
+    }
+
+    // Detect face
+    const detections = await faceDetectorModel.estimateFaces(faceElement);
+    if (!detections || detections.length === 0) {
+        alert("얼굴을 찾지 못했습니다.");
+        return;
+    }
+
+    const face = detections[0];
+
+    const [x1, y1] = face.topLeft;
+    const [x2, y2] = face.bottomRight;
+
+    const faceWidth = x2 - x1;
+    const faceHeight = y2 - y1;
+
+    // 얼굴 중심
+    const cx = x1 + faceWidth / 2;
+    const cy = y1 + faceHeight / 2;
+
+    const w = faceElement.naturalWidth || faceElement.width;
+    const h = faceElement.naturalHeight || faceElement.height;
+
+    const canvas = document.getElementById("overlay-canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = w;
+    canvas.height = h;
+
+    // 1) 전체를 흰색으로 채우기
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, w, h);
+
+    // 2) 얼굴 타원 마스크 생성
+    ctx.save();
+    ctx.beginPath();
+
+    // 타원 그리기
+    ctx.ellipse(
+        cx,
+        cy,
+        faceWidth * 0.55,   // 가로 반경
+        faceHeight * 0.75,  // 세로 반경
+        0,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.clip();  // 타원 안쪽만 보이도록
+
+    // 3) 얼굴 이미지 그리기 (타원 내부만 표시됨)
+    ctx.drawImage(faceElement, 0, 0, w, h);
+    ctx.restore();
+
+    canvas.style.display = "block";
+    document.getElementById("download-result-btn").disabled = false;
+}
+
 
 
 
