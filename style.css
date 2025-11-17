@@ -635,6 +635,47 @@ h2 .fas {
     }
 }
 
+/* ===================================== */
+/* ⭐ Hair Overlay Tool — New Styles      */
+/* ===================================== */
+
+/* Hair Overlay Card */
+#hair-overlay-section {
+    margin-top: 35px;
+}
+
+#hair-overlay-section .file-input {
+    padding: 10px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fafafa;
+    margin-bottom: 15px;
+}
+
+/* Buttons for Hair Overlay */
+#hair-overlay-section .button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Hair Overlay Canvas */
+#overlay-canvas {
+    margin-top: 20px;
+    border-radius: 10px;
+    border: 2px dashed #ccc;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Disable button style */
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 
 
 
