@@ -573,8 +573,14 @@ async function applyHairOverlay() {
     const canvas = document.getElementById("overlay-canvas");
     const ctx = canvas.getContext("2d");
 
-    canvas.width = faceElement.width;
-    canvas.height = faceElement.height;
+    const w = faceElement.naturalWidth || faceElement.width;
+    const h = faceElement.naturalHeight || faceElement.height;
+    
+    canvas.width = w;
+    canvas.height = h;
+    
+    ctx.drawImage(faceElement, 0, 0, w, h);
+
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -595,3 +601,4 @@ function downloadOverlayResult() {
     link.href = canvas.toDataURL("image/png");
     link.click();
 }
+
