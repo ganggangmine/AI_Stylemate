@@ -491,7 +491,6 @@ function updateModelInfo() {
     }
 }
 
-
 // ===============================================
 // 9. Hair Overlay Function (Natural Positioning)
 // ===============================================
@@ -596,17 +595,3 @@ function downloadOverlayResult() {
     link.href = canvas.toDataURL("image/png");
     link.click();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
