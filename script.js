@@ -490,3 +490,57 @@ function updateModelInfo() {
          document.getElementById("process-image-btn").innerText = 'Re-Analyze Image';
     }
 }
+
+
+// 1) 얼굴 감지
+const detections = await faceDetectorModel.estimateFaces(faceElement, FACE_DETECTION_THRESHOLD);
+
+if (!detections || detections.length === 0) {
+    alert("얼굴을 찾을 수 없습니다.");
+    return;
+}
+
+// BlazeFace landmark 사용
+const face = detections[0];
+
+// bounding box
+const [x1, y1] = face.topLeft;
+const [x2, y2] = face.bottomRight;
+
+const faceWidth = x2 - x1;
+const faceHeight = y2 - y1;
+
+// ⭐ 랜드마크 사용: 두 눈 좌표
+const rightEye = face.landmarks[0]; 
+const leftEye = face.landmarks[1];
+
+// 두 눈의 중앙 좌표
+const eyeCenterX = (rightEye[0] + leftEye[0]) / 2;
+const eyeCenterY = (rightEye[1] + leftEye[1]) / 2;
+
+// ⭐ 이마 위치 추정
+// 눈에서 ↑ 약 25% 올라간 부분이 이마
+const foreheadY = eyeCenterY - (faceHeight * 0.25);
+
+// ⭐ 헤어 크기 / 비율 보정 (좀 더 자연스럽게)
+const hairWidth = faceWidth * 1.25;   // 기존보다 약간 좁게
+const hairHeight = hairWidth * (uploadedHairImg.height / uploadedHairImg.width);
+
+// ⭐ 헤어 위치 계산 (이마 기준)
+const hairX = eyeCenterX - (hairWidth / 2);
+const hairY = foreheadY - (hairHeight * 0.35); // 미세 조정값
+
+// ⭐ 그리기
+ctx.drawImage(uploadedHairImg, hairX, hairY, hairWidth, hairHeight);
+
+
+
+
+
+
+
+
+
+
+
+
