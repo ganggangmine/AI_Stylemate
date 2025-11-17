@@ -573,12 +573,12 @@ async function applyHairOverlay() {
     const foreheadY = eyeCenterY - (faceHeight * 0.25);
 
     // ⭐ 헤어 PNG 크기
-    const hairWidth = faceWidth * 1.25;
+    const hairWidth = faceWidth * 2;
     const hairHeight = hairWidth * (uploadedHairImg.height / uploadedHairImg.width);
 
     // ⭐ 헤어 PNG 위치
     const hairX = eyeCenterX - (hairWidth / 2);
-    const hairY = foreheadY - hairHeight * 0.35;
+    const hairY = foreheadY - hairHeight * 1;
 
     // ⭐ 캔버스 출력
     const canvas = document.getElementById("overlay-canvas");
@@ -606,5 +606,6 @@ function downloadOverlayResult() {
     link.href = canvas.toDataURL("image/png");
     link.click();
 }
+
 
 
