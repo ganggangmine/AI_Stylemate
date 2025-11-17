@@ -522,27 +522,35 @@ async function applyHairOverlay() {
         return;
     }
 
-
     if (!faceDetectorModel) {
-        alert("Face Detector not loaded yet.");
+        alert("Face detector not loaded.");
         return;
     }
 
     let faceElement =
-        (currentSource === 'webcam')
+        (currentSource === "webcam")
             ? webcam.canvas
             : document.getElementById("uploaded-image");
 
     if (!faceElement) {
-        alert("No face image available.");
+        alert("No face image found.");
         return;
     }
 
-    // 1) 얼굴 감지
-    const detections = await faceDetectorModel.estimateFaces(faceElement, FACE_DETECTION_THRESHOLD);
+    // ⭐ 업로드 이미지의 실제 픽셀 사이즈 가져오기
+    const w = faceElement.naturalWidth || faceElement.width;
+    const h = faceElement.naturalHeight || faceElement.height;
+
+    if (!w || !h) {
+        alert("Image width/height is zero.");
+        return;
+    }
+
+    // 얼굴 감지
+    const detections = await faceDetectorModel.estimateFaces(faceElement);
 
     if (!detections || detections.length === 0) {
-        alert("얼굴을 찾을 수 없습니다.");
+        alert("얼굴을 찾지 못했습니다.");
         return;
     }
 
@@ -550,47 +558,46 @@ async function applyHairOverlay() {
 
     const [x1, y1] = face.topLeft;
     const [x2, y2] = face.bottomRight;
+
     const faceWidth = x2 - x1;
     const faceHeight = y2 - y1;
 
-    // ⭐ 랜드마크
+    // ⭐ 랜드마크 기반 눈 위치
     const rightEye = face.landmarks[0];
     const leftEye = face.landmarks[1];
 
     const eyeCenterX = (rightEye[0] + leftEye[0]) / 2;
     const eyeCenterY = (rightEye[1] + leftEye[1]) / 2;
 
-    // ⭐ 이마 위치 계산
+    // ⭐ 이마 위치
     const foreheadY = eyeCenterY - (faceHeight * 0.25);
 
-    // ⭐ 헤어 크기
+    // ⭐ 헤어 PNG 크기
     const hairWidth = faceWidth * 1.25;
     const hairHeight = hairWidth * (uploadedHairImg.height / uploadedHairImg.width);
 
-    // ⭐ 실제 머리 위치
-    const hairX = eyeCenterX - hairWidth / 2;
+    // ⭐ 헤어 PNG 위치
+    const hairX = eyeCenterX - (hairWidth / 2);
     const hairY = foreheadY - hairHeight * 0.35;
 
-    // 2) 캔버스 그리기
+    // ⭐ 캔버스 출력
     const canvas = document.getElementById("overlay-canvas");
     const ctx = canvas.getContext("2d");
 
-    const w = faceElement.naturalWidth || faceElement.width;
-    const h = faceElement.naturalHeight || faceElement.height;
-    
     canvas.width = w;
     canvas.height = h;
-    
-      // ✔ 얼굴 이미지 먼저 그리기
+
+    // 얼굴 먼저 그리기
     ctx.drawImage(faceElement, 0, 0, w, h);
 
-
-    // ✔ 합성 머리 그리기
+    // 헤어 합성
     ctx.drawImage(uploadedHairImg, hairX, hairY, hairWidth, hairHeight);
 
+    // 화면에 캔버스 표시
     canvas.style.display = "block";
     document.getElementById("download-result-btn").disabled = false;
 }
+
 
 function downloadOverlayResult() {
     const canvas = document.getElementById("overlay-canvas");
@@ -599,4 +606,5 @@ function downloadOverlayResult() {
     link.href = canvas.toDataURL("image/png");
     link.click();
 }
+
 
