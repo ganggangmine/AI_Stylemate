@@ -579,15 +579,11 @@ async function applyHairOverlay() {
     canvas.width = w;
     canvas.height = h;
     
+      // ✔ 얼굴 이미지 먼저 그리기
     ctx.drawImage(faceElement, 0, 0, w, h);
 
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 원본 얼굴
-    ctx.drawImage(faceElement, 0, 0);
-
-    // 합성 헤어
+    // ✔ 합성 머리 그리기
     ctx.drawImage(uploadedHairImg, hairX, hairY, hairWidth, hairHeight);
 
     canvas.style.display = "block";
@@ -601,5 +597,6 @@ function downloadOverlayResult() {
     link.href = canvas.toDataURL("image/png");
     link.click();
 }
+
 
 
