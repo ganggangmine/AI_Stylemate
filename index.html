@@ -102,12 +102,37 @@
             </div>
             
         </section>
+            <!-- ⭐ Hair Overlay Section -->
+        <section id="hair-overlay-section" class="card fade-in">
+            <h2><i class="fas fa-user-alt"></i> Hair Overlay Tool</h2>
+            <p>Upload a transparent PNG hairstyle and apply it to your face.</p>
+    
+            <!-- Hair Upload -->
+            <input type="file" id="hair-upload" accept="image/png" class="file-input">
+    
+            <div class="button-group" style="margin-top: 15px;">
+                <button id="apply-hair-btn" class="btn primary-btn" disabled>
+                    Apply Hair to Face
+                </button>
+                <button id="download-result-btn" class="btn secondary-btn" disabled>
+                    Download Result
+                </button>
+            </div>
+    
+            <!-- Composite Canvas -->
+            <canvas id="overlay-canvas"
+                width="400"
+                height="500"
+                style="margin-top: 20px; display: none; border: 1px solid #ddd;">
+            </canvas>
+        </section>
     </div>
 
     <script src="script.js"></script>
 </body>
 
 </html>
+
 
 
 
