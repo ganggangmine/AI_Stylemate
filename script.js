@@ -492,46 +492,112 @@ function updateModelInfo() {
 }
 
 
-// 1) 얼굴 감지
-const detections = await faceDetectorModel.estimateFaces(faceElement, FACE_DETECTION_THRESHOLD);
+// ===============================================
+// 9. Hair Overlay Function (Natural Positioning)
+// ===============================================
 
-if (!detections || detections.length === 0) {
-    alert("얼굴을 찾을 수 없습니다.");
-    return;
+let uploadedHairImg = null;
+
+document.getElementById("hair-upload").addEventListener("change", function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        uploadedHairImg = new Image();
+        uploadedHairImg.src = ev.target.result;
+        uploadedHairImg.onload = () => {
+            document.getElementById("apply-hair-btn").disabled = false;
+        };
+    };
+    reader.readAsDataURL(file);
+});
+
+document.getElementById("apply-hair-btn").addEventListener("click", applyHairOverlay);
+document.getElementById("download-result-btn").addEventListener("click", downloadOverlayResult);
+
+async function applyHairOverlay() {
+    if (!uploadedHairImg) {
+        alert("Please upload a hair PNG first.");
+        return;
+    }
+
+    if (!faceDetectorModel) {
+        alert("Face Detector not loaded yet.");
+        return;
+    }
+
+    let faceElement =
+        (currentSource === 'webcam')
+            ? webcam.canvas
+            : document.getElementById("uploaded-image");
+
+    if (!faceElement) {
+        alert("No face image available.");
+        return;
+    }
+
+    // 1) 얼굴 감지
+    const detections = await faceDetectorModel.estimateFaces(faceElement, FACE_DETECTION_THRESHOLD);
+
+    if (!detections || detections.length === 0) {
+        alert("얼굴을 찾을 수 없습니다.");
+        return;
+    }
+
+    const face = detections[0];
+
+    const [x1, y1] = face.topLeft;
+    const [x2, y2] = face.bottomRight;
+    const faceWidth = x2 - x1;
+    const faceHeight = y2 - y1;
+
+    // ⭐ 랜드마크
+    const rightEye = face.landmarks[0];
+    const leftEye = face.landmarks[1];
+
+    const eyeCenterX = (rightEye[0] + leftEye[0]) / 2;
+    const eyeCenterY = (rightEye[1] + leftEye[1]) / 2;
+
+    // ⭐ 이마 위치 계산
+    const foreheadY = eyeCenterY - (faceHeight * 0.25);
+
+    // ⭐ 헤어 크기
+    const hairWidth = faceWidth * 1.25;
+    const hairHeight = hairWidth * (uploadedHairImg.height / uploadedHairImg.width);
+
+    // ⭐ 실제 머리 위치
+    const hairX = eyeCenterX - hairWidth / 2;
+    const hairY = foreheadY - hairHeight * 0.35;
+
+    // 2) 캔버스 그리기
+    const canvas = document.getElementById("overlay-canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = faceElement.width;
+    canvas.height = faceElement.height;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 원본 얼굴
+    ctx.drawImage(faceElement, 0, 0);
+
+    // 합성 헤어
+    ctx.drawImage(uploadedHairImg, hairX, hairY, hairWidth, hairHeight);
+
+    canvas.style.display = "block";
+    document.getElementById("download-result-btn").disabled = false;
 }
 
-// BlazeFace landmark 사용
-const face = detections[0];
+function downloadOverlayResult() {
+    const canvas = document.getElementById("overlay-canvas");
+    const link = document.createElement("a");
+    link.download = "ai_styled_hair.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+}
 
-// bounding box
-const [x1, y1] = face.topLeft;
-const [x2, y2] = face.bottomRight;
 
-const faceWidth = x2 - x1;
-const faceHeight = y2 - y1;
-
-// ⭐ 랜드마크 사용: 두 눈 좌표
-const rightEye = face.landmarks[0]; 
-const leftEye = face.landmarks[1];
-
-// 두 눈의 중앙 좌표
-const eyeCenterX = (rightEye[0] + leftEye[0]) / 2;
-const eyeCenterY = (rightEye[1] + leftEye[1]) / 2;
-
-// ⭐ 이마 위치 추정
-// 눈에서 ↑ 약 25% 올라간 부분이 이마
-const foreheadY = eyeCenterY - (faceHeight * 0.25);
-
-// ⭐ 헤어 크기 / 비율 보정 (좀 더 자연스럽게)
-const hairWidth = faceWidth * 1.25;   // 기존보다 약간 좁게
-const hairHeight = hairWidth * (uploadedHairImg.height / uploadedHairImg.width);
-
-// ⭐ 헤어 위치 계산 (이마 기준)
-const hairX = eyeCenterX - (hairWidth / 2);
-const hairY = foreheadY - (hairHeight * 0.35); // 미세 조정값
-
-// ⭐ 그리기
-ctx.drawImage(uploadedHairImg, hairX, hairY, hairWidth, hairHeight);
 
 
 
