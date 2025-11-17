@@ -2,7 +2,7 @@
 
 /* 변수 설정 */
 :root {
-    --gradient-start: #FFFFFF;        
+    --gradient-start: #FFC0CB;        
     --gradient-end: #ADD8E6;          
     --main-text-color: #333333;       
     --h2-underline-color: linear-gradient(to right, #FFC0CB, #ADD8E6); 
@@ -675,6 +675,7 @@ button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
 
 
 
