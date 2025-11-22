@@ -1,690 +1,654 @@
-// script.js - AI StyleMate Logic (Final Version with Face Detection + AR Try-On)
+/* style.css - 최종 통합 버전 (헤더 및 버튼 디자인 원본 복원, AR Try-On 스타일 개선) */
 
-// ----------------------------------------------------
-// 1. MODEL PATHS, VARIABLES & DATA DEFINITION
-// ----------------------------------------------------
-const URL_MODEL_1 = "./models/model_1/"; 
-const URL_MODEL_2 = "./models/model_2/"; 
+/* 변수 설정 */
+:root {
+    --gradient-start: #FFC0CB;        /* Light Pink */
+    --gradient-end: #ADD8E6;          /* Light Blue */
+    --main-text-color: #333333;       
+    --h2-underline-color: linear-gradient(to right, #FFC0CB, #ADD8E6); 
+    --card-bg: #FFFFFF;               
+    --bg-light: #F8F9FA;              
+    --shadow-color: rgba(0, 0, 0, 0.1);
 
-let model1, model2, webcam;
-let faceDetectorModel; // 💡 얼굴 감지 모델 변수
-let labelContainer = document.getElementById("label-container");
-let currentModel = 0; 
-let requestID; 
-let isRunning = false; 
-let isInitialized = false; 
-let currentSource = 'webcam'; 
+    --font-montserrat: 'Montserrat', sans-serif;
+    --font-lato: 'Lato', sans-serif;
 
-// 💡 AR Try-On 관련 변수
-let arWebcamStream = null;
-const arWebcamVideo = document.getElementById("ar-webcam-video");
-const arStickerOverlay = document.getElementById("ar-sticker-overlay");
-const arContainer = document.getElementById("ar-container");
-// 🌟 스크린샷 버튼 DOM 요소 추가
-const arScreenshotBtn = document.getElementById("ar-screenshot-btn");
-
-
-// 💡 얼굴 감지 임계값 (필요 시 조정 가능)
-const FACE_DETECTION_THRESHOLD = 0.9; // 얼굴 감지 신뢰도
-const MIN_FACE_SIZE = 50; // 최소 얼굴 크기 (픽셀)
-
-// 💡 얼굴형별 추천 데이터 및 이미지 URL 정의
-const faceTypeData = {
-    "Oval": {
-        summary: "The most versatile face shape. Naturally suits most hairstyles.",
-        short: "Crop cut, undercut, bob.",
-        long: "Layered cuts, natural waves.",
-        shortImage: 'images/oval_short.png',
-        longImage: 'images/oval_long.png',
-        // 💡 AR 스티커 파일명 추가
-        shortSticker: 'images/oval_short_sticker.png',
-        longSticker: 'images/oval_long_sticker.png'
-    },
-    "Round": {
-        summary: "Styles that look longer and sharper work well. Best with styles that add vertical length and slim the sides.",
-        short: "Asymmetrical cuts, volume on top.",
-        long: "Long bob, side-flowing layers.",
-        shortImage: 'images/round_short.png',
-        longImage: 'images/round_long.png',
-        // 💡 AR 스티커 파일명 추가
-        shortSticker: 'images/round_short_sticker.png',
-        longSticker: 'images/round_long_sticker.png'
-    },
-    "Square": {
-        summary: "Reduce sharp angles and add soft lines. Softens a strong jawline with gentle curves.",
-        short: "Textured cuts, side-swept styles.",
-        long: "Waves with face-framing layers.",
-        shortImage: 'images/square_short.png',
-        longImage: 'images/square_long.png',
-        // 💡 AR 스티커 파일명 추가
-        shortSticker: 'images/square_short_sticker.png',
-        longSticker: 'images/square_long_sticker.png'
-    },
-    "Heart": {
-        summary: "Keep the top light and add volume toward the bottom. Balances a wider forehead and narrower chin.",
-        short: "Side bangs, face-hugging layers.",
-        long: "Heavier layers below the chin, side parts.",
-        shortImage: 'images/heart_short.png',
-        longImage: 'images/heart_long.png',
-        // 💡 AR 스티커 파일명 추가
-        shortSticker: 'images/heart_short_sticker.png',
-        longSticker: 'images/heart_long_sticker.png'
-    },
-    "Oblong": {
-        summary: "Shorten the appearance of length and widen the silhouette. Works best with styles that reduce length and increase width.",
-        short: "Jaw-line bobs, forehead-covering bangs.",
-        long: "Medium-length layers, styles with side volume.",
-        shortImage: 'images/oblong_short.png',
-        longImage: 'images/oblong_long.png',
-        // 💡 AR 스티커 파일명 추가
-        shortSticker: 'images/oblong_short_sticker.png',
-        longSticker: 'images/oblong_long_sticker.png'
-    }
-};
-
-// 💡 퍼스널 톤 추천 데이터 및 이미지 URL 정의 (파일명 최종 수정됨)
-const personalToneData = {
-    "Cool": {
-        summary: "Blue-based and purple-based cool hues make the skin look clearer and brighter.",
-        hair: "Ash brown, ash blonde, blue-black",
-        clothing: "Light tones: Ice blue, lavender, lilac pink | Dark tones: Navy, charcoal gray, burgundy | Neutrals: White, cool gray",
-        makeup: "Lips: Raspberry, fuchsia, cool pink | Eyes: Mauve, silver, cool brown | Blush: Rose pink, lilac pink",
-        image: 'images/cool_tone.png' 
-    },
-    "Warm": {
-        summary: "Yellow-based and orange-based warm hues enhance natural warmth and give a healthy glow.",
-        hair: "Golden brown, copper brown",
-        clothing: "Light tones: Coral, peach, salmon | Dark tones: Olive, khaki, mustard | Neutrals: Beige, ivory, cream",
-        makeup: "Lips: Coral, orange-red, brick | Eyes: Gold, bronze, warm brown | Blush: Peach, coral, apricot",
-        image: 'images/warm_tone.png' 
-    }
-};
-
-
-// ===============================================
-// 2. Event Listeners and Setup
-// ===============================================
-
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("start-button").addEventListener("click", toggleAnalysis);
+    /* 버튼 색상 - 원본 디자인에 가깝게 재설정 */
+    --primary-button-bg: linear-gradient(to right, #6a82fb, #fc5c7d); /* Start Analysis / Process Uploaded Image */
+    --primary-button-hover-bg: linear-gradient(to right, #4c62e0, #e04461);
     
-    document.getElementById("model1-btn").addEventListener("click", () => handleModelChange(1));
-    document.getElementById("model2-btn").addEventListener("click", () => handleModelChange(2));
-    
-    document.getElementById("mode-webcam").addEventListener("click", () => switchMode('webcam'));
-    document.getElementById("mode-upload").addEventListener("click", () => switchMode('image'));
+    --secondary-button-bg: #5a5a5a; /* Pause / Stop Try-On */
+    --secondary-button-hover-bg: #4a4a4a;
 
-    document.getElementById("image-upload").addEventListener("change", handleImageUpload);
-    document.getElementById("process-image-btn").addEventListener("click", processUploadedImage);
-    
-    document.querySelectorAll('.face-select-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            document.querySelectorAll('.face-select-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tone-select-btn').forEach(btn => btn.classList.remove('active')); 
-            e.target.classList.add('active');
-            const faceType = e.target.getAttribute('data-facetype');
-            showRecommendation(faceType); 
-            // 💡 AR Try-On 정지
-            stopArTryOn();
-        });
-    });
+    --mode-button-border: #BBBBBB; /* Webcam / Upload Mode border */
+    --mode-button-active-bg: linear-gradient(to right, #6a82fb, #fc5c7d); /* Webcam / Upload Mode active */
+    --mode-button-active-text: #FFFFFF;
 
-    document.querySelectorAll('.tone-select-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            document.querySelectorAll('.face-select-btn').forEach(btn => btn.classList.remove('active')); 
-            document.querySelectorAll('.tone-select-btn').forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
-            const toneType = e.target.getAttribute('data-tonetype');
-            showToneRecommendation(toneType); 
-             // 💡 AR Try-On 정지
-            stopArTryOn();
-        });
-    });
-    
-    // 💡 AR Stop Button Listener
-    document.getElementById("ar-stop-button").addEventListener('click', stopArTryOn);
-    
-    // 🌟 AR Screenshot Button Listener 등록
-    if (arScreenshotBtn) {
-        arScreenshotBtn.addEventListener('click', captureArScreenshot);
-    }
-    
-    switchMode('webcam');
-    
-    document.getElementById("style-selection-controls").style.display = 'none';
-    document.getElementById("tone-selection-controls").style.display = 'none';
-});
+    --model-select-bg: #e0e0e0; /* Face Type / Personal Tone default */
+    --model-select-active-bg: linear-gradient(45deg, #FFD700, #FFA500); /* Face Type / Personal Tone active */
+    --model-select-disabled-bg: #e0e0e0; 
 
+    /* 얼굴형/톤 선택 버튼 기본 색상 */
+    --face-tone-select-btn-default-bg: #6c757d; 
+    --face-tone-select-btn-default-text: white;
+}
 
-// ===============================================
-// 3. Mode Switching Logic 
-// ===============================================
+body {
+    font-family: var(--font-lato);
+    background-color: var(--card-bg);
+    color: var(--main-text-color);
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh; /* 전체 화면 채우기 */
+}
 
-function switchMode(mode) {
-    if (currentSource === mode) return;
+header {
+    width: 100%;
+    background: linear-gradient(90deg, var(--gradient-start) 0%, var(--gradient-end) 100%); 
+    color: var(--main-text-color); 
+    padding: 40px 20px;
+    box-shadow: 0 6px 15px var(--shadow-color);
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* 수직 가운데 정렬 */
+}
 
-    if (isRunning) {
-        toggleAnalysis(); 
-    }
-    
-    // 💡 AR Try-On 정지
-    stopArTryOn();
-    
-    const webcamContainer = document.getElementById("webcam-container");
-    webcamContainer.innerHTML = '';
-    
-    currentSource = mode;
-    
-    document.getElementById("mode-webcam").classList.remove('active');
-    document.getElementById("mode-upload").classList.remove('active');
-    
-    const webcamControls = document.getElementById("webcam-controls");
-    const uploadControls = document.getElementById("upload-controls");
+.header-content-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    width: 100%;
+    gap: 20px;
+}
 
-    if (mode === 'webcam') {
-        document.getElementById("mode-webcam").classList.add('active');
-        webcamControls.style.display = 'block';
-        uploadControls.style.display = 'none';
-        webcamContainer.innerHTML = '<p id="initial-message">Click "Start Analysis" to load webcam.</p>';
-        
-        if(webcam && webcam.canvas) {
-            webcamContainer.appendChild(webcam.canvas);
-        }
+.header-text-group {
+    flex-grow: 1; 
+    display: flex; /* 내부 요소 정렬을 위해 flex 추가 */
+    flex-direction: column; /* 텍스트를 수직으로 쌓기 */
+    align-items: center; /* 텍스트 수평 가운데 정렬 */
+}
 
-    } else if (mode === 'image') {
-        document.getElementById("mode-upload").classList.add('active');
-        webcamControls.style.display = 'none';
-        uploadControls.style.display = 'block';
-        webcamContainer.innerHTML = '<p id="initial-message">Please upload an image.</p>';
-        
-        if(webcam) {
-            webcam.pause();
-        }
-    }
-    
-    labelContainer.innerHTML = (mode === 'webcam' && isRunning) ? 'Running analysis...' : 'Waiting for analysis...';
-    document.getElementById("recommendation-output").innerHTML = '<p>Select a model to begin the analysis or selection.</p>';
+.header-icons-left, .header-icons-right {
+    display: flex;
+    gap: 15px; 
+    /* 아이콘 그룹을 좌우 끝으로 밀기 */
+    align-items: center;
+}
+
+.header-icon {
+    width: 80px; 
+    height: 80px;
+    filter: none; /* 아이콘 필터 제거 */
+    opacity: 1.0; 
+    transition: transform 0.2s;
+}
+
+.header-icon:hover {
+    transform: scale(1.1);
+    filter: none;
 }
 
 
-// ===============================================
-// 4. Initialization, Webcam Loop Control (toggleAnalysis)
-// ===============================================
+h1 {
+    font-family: "Jacques Francois", serif;
+    font-weight: 800; 
+    font-size: 4em; 
+    margin-bottom: 5px;
+    letter-spacing: 2px; 
+    color: var(--main-text-color); 
+}
 
-async function toggleAnalysis() {
-    const startButton = document.getElementById("start-button");
-    
-    if (isRunning) {
-        window.cancelAnimationFrame(requestID);
-        startButton.innerText = "▶️ Resume Analysis";
-        startButton.classList.replace('primary-btn', 'secondary-btn');
-        isRunning = false;
-        return; 
-    }
-    
-    // 💡 AR Try-On 정지
-    stopArTryOn();
-    
-    if (!isInitialized) {
-        startButton.innerText = "LOADING...";
-        startButton.disabled = true;
-        document.getElementById("webcam-container").innerHTML = "Loading models and setting up webcam. Please wait...";
-        
-        try {
-            model1 = await tmImage.load(URL_MODEL_1 + "model.json", URL_MODEL_1 + "metadata.json");
-            model2 = await tmImage.load(URL_MODEL_2 + "model.json", URL_MODEL_2 + "metadata.json");
-            
-            // 💡 얼굴 감지 모델 로드 추가
-            faceDetectorModel = await blazeface.load();
+.subtitle {
+    font-family: var(--font-lato);
+    font-size: 1.3em; 
+    opacity: 0.9; 
+    max-width: 800px;
+    margin: 0 auto;
+    color: var(--main-text-color);
+}
 
-            const flip = true; 
-            webcam = new tmImage.Webcam(400, 300, flip); 
-            await webcam.setup(); 
-            await webcam.play();
-            
-            document.getElementById("webcam-container").innerHTML = ''; 
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-            
-            currentModel = 1; 
-            updateModelInfo();
-            isInitialized = true;
-
-        } catch (error) {
-            console.error("Initialization error:", error);
-            document.getElementById("webcam-container").innerHTML = "<p style='color:red;'>⚠️ Error! Check console. (Ensure files are present and running on HTTPS)</p>";
-            startButton.innerText = "⚠️ Error. Retry";
-            startButton.disabled = false;
-            return;
-        }
-        startButton.disabled = false;
-    }
-
-    if(webcam) webcam.play(); 
-    startButton.innerText = "⏸️ Pause & Lock Result";
-    startButton.classList.replace('secondary-btn', 'primary-btn');
-    isRunning = true;
-    loop(); 
+h2 {
+    font-family: var(--font-montserrat);
+    font-weight: 600;
+    font-size: 1.8em;
+    color: var(--main-text-color);
+    border-bottom: 3px solid;
+    border-image: var(--h2-underline-color);
+    border-image-slice: 1;
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+h2 .fas {
+    color: var(--main-text-color);
 }
 
 
-// ===============================================
-// 5. Webcam Prediction Loop and Model Change Handler 
-// ===============================================
+/* 메인 컨텐츠 및 카드 스타일 */
+#main-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    padding: 0 20px 50px;
+    max-width: 1300px;
+    width: 100%;
+}
 
-function loop() {
-    if (currentSource === 'webcam') {
-        webcam.update(); 
-        
-        if (currentModel === 1 && model1) {
-            predict(model1, "Face Type Analysis", webcam.canvas);
-        } else if (currentModel === 2 && model2) {
-            predict(model2, "Personal Tone Analysis", webcam.canvas);
-        }
-    }
-    
-    requestID = window.requestAnimationFrame(loop); 
+.card {
+    background-color: var(--card-bg);
+    padding: 35px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px var(--shadow-color);
+    flex: 1 1 350px; 
+    min-width: 320px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* 버튼 스타일 */
+.btn {
+    font-family: var(--font-montserrat);
+    font-weight: 600;
+    border: none;
+    padding: 14px 28px;
+    margin: 10px 8px;
+    border-radius: 30px; 
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.primary-btn { 
+    background: var(--primary-button-bg); 
+    color: var(--mode-button-active-text);
+    box-shadow: 0 4px 10px rgba(106, 130, 251, 0.3);
+}
+.secondary-btn {
+    background-color: var(--secondary-button-bg);
+    color: var(--mode-button-active-text);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.secondary-btn:hover {
+    background-color: var(--secondary-button-hover-bg);
 }
 
 
-function handleModelChange(newModel) {
-    if (currentModel === newModel) return;
+/* 듀얼 모드 버튼 스타일 */
+.mode-select-group {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-radius: 5px; /* 전체 그룹의 둥근 모서리 */
+    overflow: hidden; /* 내부 버튼이 튀어나오지 않게 */
+}
+.mode-btn {
+    background-color: var(--card-bg); /* 기본 흰색 */
+    color: var(--main-text-color);
+    border: 1px solid var(--mode-button-border); /* 얇은 회색 테두리 */
+    padding: 10px 20px;
+    margin: 0; /* 그룹 내부에서 마진 제거 */
+    border-radius: 0; /* 개별 버튼의 둥근 모서리 제거 */
+    transition: all 0.2s;
+    font-weight: 400;
+    flex-grow: 1; /* 각 버튼이 균등한 너비를 갖도록 */
+}
+.mode-btn:first-child {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+.mode-btn:last-child {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-left: none; /* 중간 테두리 제거 */
+}
+.mode-btn.active {
+    background: var(--mode-button-active-bg);
+    color: var(--mode-button-active-text);
+    border-color: transparent;
+    font-weight: 600;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.2); /* 활성 버튼에 내부 그림자 */
+}
 
-    currentModel = newModel;
-    updateModelInfo();
-    
-    const styleControls = document.getElementById("style-selection-controls");
-    const toneControls = document.getElementById("tone-selection-controls"); 
-    const recommendationOutput = document.getElementById("recommendation-output");
-    
-    // 💡 AR Try-On 정지
-    stopArTryOn();
-    
-    if (newModel === 1) { 
-        styleControls.style.display = 'block';
-        toneControls.style.display = 'none';
-        recommendationOutput.innerHTML = '<p>Select a Face Type button from the **Hair Style Guide** to see recommendations.</p>';
-        document.querySelectorAll('.tone-select-btn').forEach(btn => btn.classList.remove('active'));
-        
-    } else { 
-        styleControls.style.display = 'none'; 
-        toneControls.style.display = 'block'; 
-        recommendationOutput.innerHTML = '<p>Select a Personal Tone button from the **Personal Tone Guide** to see recommendations.</p>';
-        document.querySelectorAll('.face-select-btn').forEach(btn => btn.classList.remove('active'));
-    }
-    
-    if ((currentSource === 'webcam' && !isRunning && isInitialized) || currentSource === 'image') {
-        const modelToUse = (currentModel === 1) ? model1 : model2;
-        const modelName = (currentModel === 1) ? "Face Type Analysis" : "Personal Tone Analysis";
-        const element = (currentSource === 'webcam') ? webcam.canvas : document.getElementById('uploaded-image');
-        
-        if(element) {
-            predict(modelToUse, modelName, element);
-        }
-    } 
+/* 모델 선택 버튼 스타일 */
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px; /* 버튼 간 간격 */
+    margin-top: 20px;
+}
+.model-select-btn { 
+    background-color: var(--model-select-bg);
+    color: var(--main-text-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 10px 15px; 
+    flex-grow: 1; /* 버튼이 컨테이너 너비에 맞춰 확장 */
+    min-width: 150px; /* 최소 너비 */
+}
+.model-select-btn.active {
+    background: var(--model-select-active-bg);
+    color: var(--main-text-color);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    transform: scale(1.02); /* 활성 시 약간 확대 */
+}
+
+/* 얼굴형 선택 버튼 그룹 스타일 */
+#style-selection-controls {
+    text-align: center;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: var(--bg-light);
+    margin-top: 30px; 
+}
+#style-selection-controls h3 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: var(--primary-button-bg); /* 헤더 H1과 비슷한 그라데이션 */
+}
+
+.face-type-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+.face-select-btn {
+    background-color: var(--face-tone-select-btn-default-bg); /* 기본 회색 */
+    color: var(--face-tone-select-btn-default-text);
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: 700;
+    flex: 1 1 100px; 
+    margin: 0;
+    font-size: 0.9em;
+    text-transform: capitalize;
+    transition: background-color 0.2s, transform 0.2s;
+}
+.face-select-btn.active {
+    background: var(--primary-button-bg); 
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
+}
+
+/* 퍼스널 톤 선택 버튼 그룹 스타일 */
+#tone-selection-controls {
+    text-align: center;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: var(--bg-light);
+    margin-top: 30px; 
+}
+#tone-selection-controls h3 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: var(--primary-button-bg); 
+}
+
+.tone-type-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+.tone-select-btn {
+    background-color: var(--face-tone-select-btn-default-bg); 
+    color: var(--face-tone-select-btn-default-text);
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 700;
+    font-size: 1em;
+    transition: background-color 0.2s, transform 0.2s;
+}
+.tone-select-btn.active {
+    background: var(--primary-button-bg); 
+    box-shadow: 0 4px 8px rgba(252, 92, 125, 0.4);
 }
 
 
-// ===============================================
-// 6. Image Upload Logic
-// ===============================================
-
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    // 💡 AR Try-On 정지
-    stopArTryOn();
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const imgElement = document.createElement('img');
-        imgElement.id = 'uploaded-image';
-        imgElement.src = e.target.result;
-        
-        const container = document.getElementById("webcam-container");
-        container.innerHTML = ''; 
-        container.appendChild(imgElement);
-
-        document.getElementById("process-image-btn").disabled = false;
-        labelContainer.innerHTML = 'Image uploaded. Click "Process Uploaded Image" to analyze.';
-    };
-    reader.readAsDataURL(file);
+/* 웹캠/이미지 영역 */
+#webcam-container canvas, #webcam-container img {
+    border-radius: 10px;
+    border: 4px solid;
+    border-image: linear-gradient(to right, #6a82fb, #fc5c7d) 1; 
+    box-shadow: 0 0 12px rgba(106, 130, 251, 0.3);
+    width: 100%; 
+    height: auto;
+    max-width: 400px; 
+    display: block; 
+    margin: 0 auto;
 }
 
-async function processUploadedImage() {
-    const imgElement = document.getElementById('uploaded-image');
-    if (!imgElement) return;
-    
-    // 💡 AR Try-On 정지
-    stopArTryOn();
-    
-    if (!isInitialized) {
-        labelContainer.innerHTML = 'Loading models... Please wait.';
-        try {
-            model1 = await tmImage.load(URL_MODEL_1 + "model.json", URL_MODEL_1 + "metadata.json");
-            model2 = await tmImage.load(URL_MODEL_2 + "model.json", URL_MODEL_2 + "metadata.json");
-            faceDetectorModel = await blazeface.load(); // 💡 얼굴 감지 모델 로드
-            isInitialized = true;
-        } catch(e) {
-            labelContainer.innerHTML = 'Error loading models. Check console.';
-            return;
-        }
-    }
+/* 예측 결과 (퍼센트) 컨테이너 */
+#label-container {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: var(--bg-light);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
 
-    const modelToUse = (currentModel === 1) ? model1 : model2;
-    const modelName = (currentModel === 1) ? "Face Type Analysis" : "Personal Tone Analysis";
+.prediction-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #E0E0E0; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1em;
+}
+.prediction-item strong {
+    color: #fc5c7d; 
+}
 
-    labelContainer.innerHTML = 'Analyzing image...';
-    await predict(modelToUse, modelName, imgElement); 
-    
-    document.getElementById("process-image-btn").innerText = 'Analysis Complete (Click to re-analyze)';
+/* 구분선 */
+hr {
+    margin: 20px 0;
+    border: 0;
+    border-top: 1px solid #eee;
 }
 
 
-// ===============================================
-// 7. Core Prediction and UI Update
-// ===============================================
+/* 💡 공통 추천 결과 (텍스트 + 이미지) 레이아웃 */
+#recommendation-output {
+    text-align: left;
+    padding: 15px;
+    border: 1px dashed #ccc;
+    border-radius: 10px;
+    margin-top: 20px; 
+}
 
-async function predict(modelToUse, modelName, element) {
-    if (!modelToUse || !faceDetectorModel) {
-        labelContainer.innerHTML = `Error: ${modelName} or Face Detector is not loaded.`;
-        return;
-    }
-    
-    // ----------------------------------------------------------------
-    // 💡 1. 얼굴 감지(Face Detection) 로직: 얼굴의 명확성 확인
-    // ----------------------------------------------------------------
-    const predictions = await faceDetectorModel.estimateFaces(element, FACE_DETECTION_THRESHOLD);
+.recommendation-content {
+    background-color: #f8f9fa; 
+    padding: 20px;
+    border-radius: 8px;
+}
 
-    if (predictions.length === 0) {
-        labelContainer.innerHTML = '<div style="color: red; font-weight: bold; padding: 10px;">⚠️ Warning: A clear face was not detected!</div><p>Please make sure your face is facing the camera, well-lit, unobstructed, and fully visible before continuing the analysis.</p>';
-        document.getElementById("recommendation-output").innerHTML = '<p>Face detection failed: A clear face could not be detected.</p>';
-        
-        document.getElementById("style-selection-controls").style.display = 'none';
-        document.getElementById("tone-selection-controls").style.display = 'none';
-        return; 
-    }
-    
-    // 선택적: 얼굴 크기 검사 (너무 멀리 있거나 작게 찍힌 경우)
-    const largestFace = predictions[0]; 
-    const faceWidth = largestFace.bottomRight[0] - largestFace.topLeft[0];
-    const faceHeight = largestFace.bottomRight[1] - largestFace.topLeft[1];
+.recommendation-content h4 {
+    color: var(--primary-button-bg); 
+    font-size: 1.5em;
+    margin-top: 0;
+    border-bottom: 2px solid var(--gradient-start);
+    padding-bottom: 10px;
+}
 
-    if (faceWidth < MIN_FACE_SIZE || faceHeight < MIN_FACE_SIZE) {
-        labelContainer.innerHTML = '<div style="color: orange; font-weight: bold; padding: 10px;">⚠️ Warning: Your face appears too small!</div><p>Please move closer to the camera or adjust the image so your face appears larger.</p>';
-        document.getElementById("recommendation-output").innerHTML = '<p>Face detection failed: The face is too small.</p>';
-        
-        document.getElementById("style-selection-controls").style.display = 'none';
-        document.getElementById("tone-selection-controls").style.display = 'none';
-        return;
-    }
-    
-    // ----------------------------------------------------------------
-    // 💡 2. 분류(Classification) 로직: 얼굴이 명확할 때만 실행
-    // ----------------------------------------------------------------
-    
-    const currentMaxPredictions = modelToUse.getTotalClasses(); 
-    const prediction = await modelToUse.predict(element);
-
-    let resultHTML = `<div class="model-name-title"><h3>${modelName} Results:</h3></div>`;
-    
-    for (let i = 0; i < currentMaxPredictions; i++) {
-        const classPrediction = 
-            `<strong>${prediction[i].className}</strong>: ${(prediction[i].probability * 100).toFixed(1)}%`;
-        resultHTML += `<div class="prediction-item">${classPrediction}</div>`;
-    }
-    labelContainer.innerHTML = resultHTML;
-    
-    if (currentModel === 1) {
-        document.getElementById("style-selection-controls").style.display = 'block';
-        document.getElementById("tone-selection-controls").style.display = 'none'; 
-    } else if (currentModel === 2) {
-        document.getElementById("tone-selection-controls").style.display = 'block';
-        document.getElementById("style-selection-controls").style.display = 'none'; 
-    }
+.summary-text {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    font-style: italic;
+    color: #555;
 }
 
 
-// ===============================================
-// 8. Manual Recommendation Output 
-// ===============================================
-
-// 얼굴형 추천 출력
-function showRecommendation(faceType) {
-    const data = faceTypeData[faceType]; 
-    const outputContainer = document.getElementById("recommendation-output");
-    
-    if (!data) {
-        outputContainer.innerHTML = `<p style="color:red;">Error: No recommendation data found for ${faceType}.</p>`;
-        return;
-    }
-
-    const recommendationHTML = `
-        <div class="recommendation-content">
-            <h4>✨ Hairstyle Guide for ${faceType} Face Shape</h4>
-            
-            <p class="summary-text">${data.summary}</p>
-            
-            <div class="hair-styles-container">
-                <div class="style-column">
-                    <h5><i class="fas fa-cut"></i> Short Hair: ${data.short}</h5>
-                    <img src="${data.shortImage}" alt="${faceType} Short Hairstyle">
-                    <button class="btn ar-try-on-btn" data-sticker="${data.shortSticker}" data-face="${faceType}" data-length="short">AR sticker photo experience (Short)</button>
-                </div>
-                
-                <div class="style-column">
-                    <h5><i class="fas fa-spa"></i> Long Hair: ${data.long}</h5>
-                    <img src="${data.longImage}" alt="${faceType} Long Hairstyle">
-                    <button class="btn ar-try-on-btn" data-sticker="${data.longSticker}" data-face="${faceType}" data-length="long">AR sticker photo experience (Long)</button>
-                </div>
-            </div>
-        </div>
-    `;
-    outputContainer.innerHTML = recommendationHTML; 
-    
-    // 💡 합성 버튼 이벤트 리스너 할당
-    document.querySelectorAll('.ar-try-on-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const stickerPath = e.target.getAttribute('data-sticker');
-            startArTryOn(stickerPath);
-        });
-    });
+/* ---------------------------------------------------- */
+/* 🌟 1. 얼굴형 추천 스타일 (Hair Style Guide) - 레이아웃 개선 */
+/* ---------------------------------------------------- */
+.hair-styles-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 15px;
 }
 
-// 퍼스널 톤 추천 출력
-function showToneRecommendation(toneType) {
-    const data = personalToneData[toneType]; 
-    const outputContainer = document.getElementById("recommendation-output");
+.style-column {
+    flex: 1 1 calc(50% - 10px);
+    min-width: 250px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background-color: white;
     
-    if (!data) {
-        outputContainer.innerHTML = `<p style="color:red;">Error: No recommendation data found for ${toneType}.</p>`;
-        return;
-    }
-    
-    // 💡 AR Try-On 정지
-    stopArTryOn();
+    display: flex; 
+    flex-direction: column; /* 이미지와 버튼이 깔끔하게 쌓이도록 column으로 변경 */
+    gap: 10px; 
+    align-items: center; 
+}
 
-    const recommendationHTML = `
-        <div class="recommendation-content">
-            <h4>✨ Personal Color Guide for ${toneType} Tone</h4>
-            
-            <p class="summary-text">${data.summary}</p>
-            
-            <div class="tone-styles-container">
-                <div class="tone-text-column">
-                    <div class="tone-category">
-                        <h5><i class="fas fa-cut"></i> Hair Colors</h5>
-                        <p>${data.hair}</p>
-                    </div>
-                    <div class="tone-category">
-                        <h5><i class="fas fa-tshirt"></i> Clothing Colors</h5>
-                        <p>${data.clothing}</p>
-                    </div>
-                    <div class="tone-category">
-                        <h5><i class="fas fa-gem"></i> Makeup Colors</h5>
-                        <p>${data.makeup}</p>
-                    </div>
-                </div>
-                <div class="tone-image-column">
-                    <img src="${data.image}" alt="${toneType} Color Palette">
-                </div>
-            </div>
-        </div>
-    `;
-    outputContainer.innerHTML = recommendationHTML; 
+.style-column h5 {
+    color: #4CAF50; 
+    margin-top: 0;
+    margin-bottom: 5px; 
+    font-size: 1.0em; 
+    text-align: center;
+    width: 100%; 
+    line-height: 1.4;
+}
+
+.style-column img {
+    /* 얼굴형 이미지 크기 강제 고정 */
+    width: 120px !important; 
+    height: 120px !important; 
+    max-width: 120px !important;
+    object-fit: cover; 
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    flex-shrink: 0; 
 }
 
 
-function updateModelInfo() {
-    const infoElement = document.getElementById("current-model-info");
-    const btn1 = document.getElementById("model1-btn");
-    const btn2 = document.getElementById("model2-btn");
+/* 💡 AR 합성 체험 버튼 스타일 */
+.ar-try-on-btn {
+    background: linear-gradient(to right, #00BFFF, #3CB371); /* 밝은 파랑/초록 계열 */
+    color: white;
+    padding: 8px 15px;
+    font-size: 0.9em;
+    border-radius: 20px;
+    margin-top: 5px; 
+    box-shadow: 0 3px 6px rgba(0, 191, 255, 0.3);
+    width: auto; /* 1. max-width 제거하여 텍스트 길이에 맞게 자동 조절 */
+    /* max-width: 180px;  삭제 */
+    transition: all 0.2s ease;
+}
 
-    if (currentModel === 1) {
-        infoElement.innerHTML = "Active Model: **Face Type Analysis**";
-        btn1.classList.add('active');
-        btn2.classList.remove('active');
-    } else if (currentModel === 2) {
-        infoElement.innerHTML = "Active Model: **Personal Tone Analysis**";
-        btn1.classList.remove('active');
-        btn2.classList.add('active');
-    }
-
-    if (currentSource === 'image' && document.getElementById('uploaded-image')) {
-         document.getElementById("process-image-btn").innerText = 'Re-Analyze Image';
-    }
+.ar-try-on-btn:hover {
+    background: linear-gradient(to right, #1E90FF, #2E8B57);
+    transform: translateY(-2px);
 }
 
 
-// ===============================================
-// 9. AR Try-On Logic (기존 핵심 기능)
-// ===============================================
+/* ---------------------------------------------------- */
+/* 🌟 2. 퍼스널 톤 추천 스타일 (Personal Tone Guide) */
+/* ---------------------------------------------------- */
+.tone-styles-container {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start; 
+    margin-top: 15px;
+}
 
-// AR 웹캠 활성화 및 스티커 오버레이
-async function startArTryOn(stickerPath) {
-    // 분석 웹캠이 실행 중이면 정지
-    if (isRunning) {
-        toggleAnalysis();
+/* 이미지 영역 (200px 사각형) */
+.tone-image-column {
+    flex: 0 0 200px; /* 이미지 너비에 맞춰 크기 조정 */
+    display: flex;
+    justify-content: center;
+    /* 💡 요청: 이미지가 너무 오른쪽으로 뜨지 않도록 중앙에 가깝게 조정 */
+    align-items: center; /* 수직 중앙 정렬 유지 */
+}
+
+.tone-image-column img {
+    /* 💡 요청: 톤 이미지 크기 800x481 비율 (200px x 120.25px) 및 사각형으로 조정 */
+    width: 200px !important; 
+    height: 120.25px !important; /* 481/800 * 200 = 120.25 */
+    max-width: 200px !important;
+    object-fit: cover; 
+    border-radius: 6px; /* 💡 요청: 사각형으로 변경 (50% 제거, 6px 둥근 모서리) */
+    border: 3px solid #FFC0CB;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0; 
+}
+
+/* 텍스트 영역 */
+.tone-text-column {
+    flex: 1; 
+    text-align: left;
+}
+
+.tone-category {
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed #eee;
+}
+.tone-category:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+
+.tone-category h5 {
+    font-size: 1.1em;
+    color: #4CAF50; 
+    margin: 0 0 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tone-category p {
+    margin: 0;
+    font-size: 0.95em;
+    color: #555;
+}
+
+/* ---------------------------------------------------- */
+/* 🌟 3. AR 합성 체험 기능 스타일 (디자인 개선) */
+/* ---------------------------------------------------- */
+#ar-container {
+    margin-top: 30px; 
+    padding: 25px;
+    border: 2px solid #ADD8E6; 
+    border-radius: 15px;
+    background-color: #f0f8ff; /* 연한 하늘색 배경 */
+    box-shadow: 0 4px 10px rgba(173, 216, 230, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.ar-title {
+    color: #6a82fb;
+    font-size: 1.5em;
+    margin-bottom: 5px;
+}
+
+.ar-subtitle {
+    font-style: italic;
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+}
+
+#ar-webcam-wrapper {
+    position: relative; 
+    width: 400px; 
+    height: 300px;
+    margin: 0 auto;
+    border-radius: 10px;
+    overflow: hidden; /* 오버레이/비디오 경계 정리 */
+    /* 💡 요청: AR 웹캠 wrapper에 테두리 추가 (4변에 모두 적용) */
+    border: 4px solid #6a82fb;
+    box-shadow: 0 0 10px rgba(106, 130, 251, 0.5);
+}
+
+#ar-webcam-video {
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    border-radius: 0; /* 테두리는 wrapper에 적용했으므로 비디오 테두리 제거 */
+    transform: scaleX(-1); /* 거울 효과 */
+    border: none; /* 💡 요청: 비디오 자체의 테두리 제거 */
+}
+
+#ar-sticker-overlay {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    opacity: 1.0; 
+    pointer-events: none; /* 클릭 방지 */
+}
+
+/* 🌟 새로 추가된 AR 컨트롤 그룹 스타일 */
+.ar-controls-group {
+    display: flex;
+    justify-content: center;
+    gap: 15px; 
+    margin-top: 20px; 
+    width: 100%;
+}
+
+#ar-screenshot-btn {
+    /* primary-btn의 기본 그라데이션 대신 다른 색상으로 강조 */
+    background: linear-gradient(to right, #FFC0CB, #ADD8E6); 
+    color: var(--main-text-color);
+    font-weight: 700;
+}
+
+#ar-stop-button {
+    padding: 10px 30px;
+}
+
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    /* 얼굴형 추천 반응형 유지 */
+    .style-column {
+        flex-direction: column; 
+        align-items: center;
+    }
+    .style-column h5 {
+        text-align: center;
+    }
+    .style-column img {
+        width: 80% !important; 
+        height: auto !important; 
+        max-width: 250px !important;
+    }
+
+    /* 톤 추천 반응형 수정 */
+    .tone-styles-container {
+        flex-direction: column; 
+        align-items: center;
+    }
+    .tone-image-column {
+        margin-bottom: 15px;
+        flex: 0 0 auto;
+    }
+    .tone-image-column img {
+        /* 반응형에서는 고정 크기 대신 최대 너비로 조정 */
+        width: 100% !important; 
+        height: auto !important; 
+        max-width: 300px !important; /* 모바일에서 너무 커지지 않게 제한 */
+    }
+    .tone-text-column {
+        width: 100%;
     }
     
-    // AR 컨테이너 표시
-    arContainer.style.display = 'block';
-    
-    // 스티커 이미지 설정
-    arStickerOverlay.src = stickerPath;
-    arStickerOverlay.style.display = 'block';
-    
-    // 웹캠 스트림 설정
-    try {
-        if (arWebcamStream) {
-            stopArWebcamStream(); // 기존 스트림이 있다면 정지
-        }
-        
-        arWebcamStream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                width: 400,
-                height: 300,
-                facingMode: "user" // 전면 카메라 사용
-            }
-        });
-
-        arWebcamVideo.srcObject = arWebcamStream;
-        arWebcamVideo.play();
-        
-        // 거울 효과를 위해 비디오 플립 (CSS에서 처리)
-        arWebcamVideo.style.transform = 'scaleX(-1)';
-        
-    } catch (err) {
-        console.error("AR Webcam activation error: ", err);
-        arContainer.innerHTML = '<p style="color:red;">⚠️ Unable to activate the webcam required for the AR experience. Please check your camera permissions.</p>';
-        stopArTryOn();
+    /* AR 버튼 반응형 */
+    .ar-controls-group {
+        flex-direction: column;
+        gap: 10px;
     }
-}
-
-// AR 웹캠 스트림 정지
-function stopArWebcamStream() {
-    if (arWebcamStream) {
-        arWebcamStream.getTracks().forEach(track => {
-            track.stop();
-        });
-        arWebcamStream = null;
-    }
-    arWebcamVideo.srcObject = null;
-}
-
-// AR Try-On 전체 정지 및 UI 정리
-function stopArTryOn() {
-    stopArWebcamStream();
-    arContainer.style.display = 'none';
-    arStickerOverlay.style.display = 'none';
-    arStickerOverlay.src = "";
-}
-
-
-// ===============================================
-// 10. AR Screenshot Logic (새로 추가된 기능)
-// ===============================================
-
-// 다운로드 처리 도우미 함수
-function triggerDownload(canvas) {
-    const dataURL = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = dataURL;
-    link.download = 'AI_StyleMate_AR_Screenshot_' + new Date().toISOString().slice(0, 10) + '.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    // canvas.remove(); // 캔버스 제거는 호출 측에서 처리
-}
-
-function captureArScreenshot() {
-    if (!arWebcamVideo || arWebcamVideo.paused || arWebcamVideo.ended || arContainer.style.display === 'none') {
-        alert('AR 웹캠이 실행 중이지 않습니다.');
-        return;
-    }
-
-    // 1. 캔버스 생성 및 크기 설정
-    const canvas = document.createElement('canvas');
-    // 비디오의 실제 해상도(400x300)를 사용
-    const videoWidth = arWebcamVideo.videoWidth; 
-    const videoHeight = arWebcamVideo.videoHeight;
-    canvas.width = videoWidth;
-    canvas.height = videoHeight;
-    const ctx = canvas.getContext('2d');
-
-    // 2. 웹캠 비디오 그리기 (거울 효과 적용)
-    // 웹캠 비디오는 CSS transform: scaleX(-1)로 좌우 반전되어 있으므로, 캔버스에도 동일하게 적용해야 합니다.
-    ctx.save(); // 현재 캔버스 상태 저장
-    ctx.translate(videoWidth, 0); // x축 이동
-    ctx.scale(-1, 1); // 좌우 반전
-    ctx.drawImage(arWebcamVideo, 0, 0, videoWidth, videoHeight);
-    ctx.restore(); // 변환 상태 초기화
-
-    // 3. 스티커 이미지 그리기
-    if (arStickerOverlay.style.display !== 'none' && arStickerOverlay.src) {
-        const stickerImg = new Image();
-        stickerImg.crossOrigin = "anonymous"; // CORS 문제 방지
-        
-        stickerImg.onload = () => {
-            // AR 스티커의 현재 CSS 위치와 크기(px)를 가져와서 캔버스에 그릴 좌표로 사용합니다.
-            const stickerComputedStyle = window.getComputedStyle(arStickerOverlay);
-            const drawX = parseFloat(stickerComputedStyle.left);
-            const drawY = parseFloat(stickerComputedStyle.top);
-            const drawWidth = parseFloat(stickerComputedStyle.width);
-            const drawHeight = parseFloat(stickerComputedStyle.height);
-            
-            // 스티커 이미지를 그립니다. 스티커는 반전되지 않아야 합니다.
-            // 캔버스의 변환이 초기화된 상태이므로 CSS와 동일한 좌표에 그릴 수 있습니다.
-            ctx.drawImage(stickerImg, drawX, drawY, drawWidth, drawHeight);
-
-            // 4. 다운로드 실행
-            triggerDownload(canvas);
-            canvas.remove();
-        };
-        stickerImg.src = arStickerOverlay.src;
-    } else {
-        // 스티커가 없는 경우 비디오만 다운로드
-        triggerDownload(canvas);
-        canvas.remove();
+    .ar-controls-group button {
+        width: 100%;
+        max-width: 300px;
     }
 }
