@@ -716,21 +716,26 @@ function captureArScreenshot() {
         const stickerImg = new Image();
         stickerImg.crossOrigin = "anonymous"; // CORS 문제 방지
         
-        stickerImg.onload = () => {
-            // ⭐ 핵심 수정: CSS 계산된 스타일(위치, 크기)을 읽어와서 그대로 캔버스에 그립니다. ⭐
-            const stickerComputedStyle = window.getComputedStyle(arStickerOverlay);
+        stickerImg.onload = () => {            
+            // ⭐ 핵심 수정 시작: 비율 유지 계산 (COVER 모드) ⭐
+            const imageRatio = stickerImg.naturalWidth / stickerImg.naturalHeight;
+            const containerRatio = videoWidth / videoHeight;
             
-            // 캔버스에 그릴 좌표와 크기
-            // 'px' 단위를 제거하고 숫자로 변환합니다.
-            const drawX = parseFloat(stickerComputedStyle.left);
-            const drawY = parseFloat(stickerComputedStyle.top);
-            const drawWidth = parseFloat(stickerComputedStyle.width);
-            const drawHeight = parseFloat(stickerComputedStyle.height);
-
-            // 캔버스는 부모 요소(#ar-webcam-wrapper)의 크기(400x300)를 기준으로 생성되었으므로, 
-            // 스티커의 계산된 CSS 위치/크기를 그대로 사용하면 화면과 완벽히 일치합니다.
-            ctx.drawImage(stickerImg, drawX, drawY, drawWidth, drawHeight);
-
+            let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+            
+            if (imageRatio > containerRatio) {
+                // 스티커가 컨테이너보다 넓은 경우: 높이를 꽉 채우고 좌우를 자름
+                drawHeight = videoHeight;
+                drawWidth = videoHeight * imageRatio;
+                offsetX = (videoWidth - drawWidth) / 2; // 수평 중앙 정렬 (잘린 부분)
+            } else {
+                // 스티커가 컨테이너보다 좁거나 같은 경우: 너비를 꽉 채우고 상하를 자름
+                drawWidth = videoWidth;
+                drawHeight = videoWidth / imageRatio;
+                offsetY = (videoHeight - drawHeight) / 2; // 수직 중앙 정렬 (잘린 부분)
+            }
+            // ⭐ 수정된 핵심: 비율을 유지한 채 중앙에 그립니다. ⭐
+            ctx.drawImage(stickerImg, offsetX, offsetY, drawWidth, drawHeight);
 
             // 4. 다운로드 실행
             triggerDownload(canvas);
@@ -743,6 +748,7 @@ function captureArScreenshot() {
         canvas.remove();
     }
 }
+
 
 
 
