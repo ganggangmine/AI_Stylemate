@@ -717,16 +717,7 @@ function captureArScreenshot() {
         stickerImg.crossOrigin = "anonymous"; // CORS 문제 방지
         
         stickerImg.onload = () => {
-            // AR 스티커의 현재 CSS 위치와 크기(px)를 가져와서 캔버스에 그릴 좌표로 사용합니다.
-            const stickerComputedStyle = window.getComputedStyle(arStickerOverlay);
-            const drawX = parseFloat(stickerComputedStyle.left);
-            const drawY = parseFloat(stickerComputedStyle.top);
-            const drawWidth = parseFloat(stickerComputedStyle.width);
-            const drawHeight = parseFloat(stickerComputedStyle.height);
-            
-            // 스티커 이미지를 그립니다. 스티커는 반전되지 않아야 합니다.
-            // 캔버스의 변환이 초기화된 상태이므로 CSS와 동일한 좌표에 그릴 수 있습니다.
-            ctx.drawImage(stickerImg, drawX, drawY, drawWidth, drawHeight);
+            ctx.drawImage(stickerImg, 0, 0, videoWidth, videoHeight);
 
             // 4. 다운로드 실행
             triggerDownload(canvas);
@@ -739,4 +730,5 @@ function captureArScreenshot() {
         canvas.remove();
     }
 }
+
 
