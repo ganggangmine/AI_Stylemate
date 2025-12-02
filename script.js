@@ -717,7 +717,27 @@ function captureArScreenshot() {
         stickerImg.crossOrigin = "anonymous"; // CORS 문제 방지
         
         stickerImg.onload = () => {
-            ctx.drawImage(stickerImg, 0, 0, videoWidth, videoHeight);
+            // ⭐ 핵심 수정 시작: 비율 유지 계산 ⭐
+            const imageRatio = stickerImg.naturalWidth / stickerImg.naturalHeight;
+            const containerRatio = videoWidth / videoHeight;
+            
+            let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+
+            if (imageRatio > containerRatio) {
+                // 이미지가 컨테이너보다 넓은 경우 (좌우 꽉 채우기)
+                drawWidth = videoWidth;
+                drawHeight = videoWidth / imageRatio;
+                offsetY = (videoHeight - drawHeight) / 2; // 수직 중앙 정렬
+            } else {
+                // 이미지가 컨테이너보다 좁거나 같은 경우 (상하 꽉 채우기)
+                drawHeight = videoHeight;
+                drawWidth = videoHeight * imageRatio;
+                offsetX = (videoWidth - drawWidth) / 2; // 수평 중앙 정렬
+            }
+
+            // ⭐ 수정된 핵심: 비율을 유지한 채 중앙에 그립니다. ⭐
+            ctx.drawImage(stickerImg, offsetX, offsetY, drawWidth, drawHeight);
+
 
             // 4. 다운로드 실행
             triggerDownload(canvas);
@@ -730,5 +750,6 @@ function captureArScreenshot() {
         canvas.remove();
     }
 }
+
 
 
