@@ -20,6 +20,9 @@ let arWebcamStream = null;
 const arWebcamVideo = document.getElementById("ar-webcam-video");
 const arStickerOverlay = document.getElementById("ar-sticker-overlay");
 const arContainer = document.getElementById("ar-container");
+// 💡 AR 컬러 변경 관련 변수 추가
+let currentStickerBaseName = ''; // 현재 스타일의 기본 이름 (예: oval_long)
+let currentStickerLength = ''; // 현재 스타일의 길이 (예: short 또는 long)
 // 🌟 스크린샷 버튼 DOM 요소 추가
 const arScreenshotBtn = document.getElementById("ar-screenshot-btn");
 
@@ -129,6 +132,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // 💡 컬러 선택 버튼 리스너 추가
+    document.getElementById("color-original-btn").addEventListener("click", () => changeStickerColor("original"));
+    document.getElementById("color-warm-btn").addEventListener("click", () => changeStickerColor("warm"));
+    document.getElementById("color-cool-btn").addEventListener("click", () => changeStickerColor("cool"));
+    
     document.querySelectorAll('.tone-select-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             document.querySelectorAll('.face-select-btn').forEach(btn => btn.classList.remove('active')); 
@@ -573,6 +581,20 @@ async function startArTryOn(stickerPath) {
     // 스티커 이미지 설정
     arStickerOverlay.src = stickerPath;
     arStickerOverlay.style.display = 'block';
+
+    // 💡 [수정] 현재 스티커 기본 이름 및 길이 정보 저장 (파일명: oval_long_sticker.png 가정)
+    const parts = stickerPath.split('/');
+    const fileName = parts[parts.length - 1]; // 파일명 (예: oval_long_sticker.png)
+    
+    // 파일명에서 ".png"와 "_sticker"를 제거한 기본 스타일 이름 저장 (예: oval_long)
+    currentStickerBaseName = fileName.replace('.png', '').replace('_sticker', ''); 
+    
+    // 길이 정보 저장
+    currentStickerLength = currentStickerBaseName.includes('short') ? 'short' : 'long'; 
+
+    // 컬러 버튼 초기화 및 'Original' 활성화
+    document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById("color-original-btn").classList.add('active');
     
     // 웹캠 스트림 설정
     try {
@@ -618,6 +640,35 @@ function stopArTryOn() {
     arContainer.style.display = 'none';
     arStickerOverlay.style.display = 'none';
     arStickerOverlay.src = "";
+}
+
+// script (9).js 파일 (9. AR Try-On Logic 부분에 추가)
+
+// AR 스티커 컬러를 변경하는 함수
+function changeStickerColor(colorType) {
+    if (!currentStickerBaseName) {
+        alert('AR Try-On을 먼저 시작해 주세요.');
+        return;
+    }
+    
+    // 버튼 클래스 업데이트
+    document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.color-btn[data-color="${colorType}"]`).classList.add('active');
+
+    let newStickerPath = '';
+    
+    if (colorType === 'original') {
+        // 기본 이미지 경로: images/oval_long_sticker.png
+        // (기존 스티커 이미지는 여전히 "_sticker" 접미사를 가지고 있다고 가정)
+        newStickerPath = `images/${currentStickerBaseName}_sticker.png`; 
+    } else {
+        // 컬러 이미지 경로: images/oval_long_warm.png (고객님 규칙 반영)
+        // currentStickerBaseName (예: oval_long) + colorType (예: warm)
+        newStickerPath = `images/${currentStickerBaseName}_${colorType}.png`;
+    }
+    
+    // 이미지 스티커 소스 업데이트
+    arStickerOverlay.src = newStickerPath;
 }
 
 
@@ -688,3 +739,4 @@ function captureArScreenshot() {
         canvas.remove();
     }
 }
+
