@@ -607,6 +607,55 @@ hr {
 }
 
 
+/* style (5).css 파일 (🌟 3. AR 합성 체험 기능 스타일 부분에 추가) */
+
+/* AR 컬러 선택 버튼 그룹 스타일 */
+#color-selection-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 10px; 
+    padding: 10px;
+    background-color: #e6f7ff; /* 연한 배경으로 강조 */
+    border-radius: 8px;
+    width: 90%; /* 너비를 AR Wrapper에 맞춰 조정 */
+    max-width: 400px;
+}
+
+.color-btn {
+    /* 기존 btn 스타일을 상속받되, 새로운 디자인 적용 */
+    padding: 8px 15px;
+    font-size: 0.9em;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    background-color: #cccccc;
+    color: var(--main-text-color);
+    font-weight: 600;
+    flex-grow: 1; /* 버튼이 컨테이너 너비에 맞춰 확장 */
+}
+
+.color-btn[data-color="original"].active {
+    background: linear-gradient(45deg, #a7b7f5, #f5a7c0); 
+    color: white;
+}
+
+.color-btn[data-color="warm"].active {
+    background: linear-gradient(45deg, #FFD700, #FFA500); /* Warm Yellow/Orange */
+    color: #333;
+}
+
+.color-btn[data-color="cool"].active {
+    background: linear-gradient(45deg, #4682B4, #87CEEB); /* Cool Blue/Sky */
+    color: white;
+}
+
+
+
+
+
+
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     /* 얼굴형 추천 반응형 유지 */
@@ -652,3 +701,4 @@ hr {
         max-width: 300px;
     }
 }
+
