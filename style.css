@@ -617,8 +617,6 @@ hr {
     margin-top: 20px;
     margin-bottom: 10px; 
     padding: 10px;
-    background-color: #e6f7ff; /* 연한 배경으로 강조 */
-    border-radius: 8px;
     width: 90%; /* 너비를 AR Wrapper에 맞춰 조정 */
     max-width: 400px;
 }
@@ -636,7 +634,7 @@ hr {
 }
 
 .color-btn[data-color="original"].active {
-    background: linear-gradient(45deg, #a7b7f5, #f5a7c0); 
+    background: linear-gradient(45deg, #FFC0CB, #ADD8E6); 
     color: white;
 }
 
@@ -701,4 +699,5 @@ hr {
         max-width: 300px;
     }
 }
+
 
