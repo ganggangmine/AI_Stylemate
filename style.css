@@ -554,6 +554,16 @@ hr {
     font-size: 0.9em;
 }
 
+#ar-view-and-controls-wrapper {
+    display: flex; /* 웹캠(왼쪽)과 컬러 버튼(오른쪽)을 수평 배치 */
+    gap: 15px;
+    align-items: center; /* 수직 중앙 정렬 */
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 600px; /* 웹캠 너비 400px + 여백 + 버튼 너비 고려 */
+    justify-content: center; /* 전체 래퍼를 가운데 정렬 */
+}
+
 #ar-webcam-wrapper {
     position: relative; 
     width: 400px; 
@@ -610,15 +620,19 @@ hr {
 /* style (5).css 파일 (🌟 3. AR 합성 체험 기능 스타일 부분에 추가) */
 
 /* AR 컬러 선택 버튼 그룹 스타일 */
-#color-selection-controls {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-    margin-bottom: 10px; 
-    padding: 10px;
-    width: 90%; /* 너비를 AR Wrapper에 맞춰 조정 */
-    max-width: 400px;
+/* 💡 [수정] 컬러 선택 버튼 그룹 (세로 배치 핵심) */
+#color-selection-controls.vertical-group {
+    display: flex; 
+    flex-direction: column; /* 세로 일렬 배치 */
+    gap: 15px; /* 버튼 간격 */
+    margin: 0;
+    padding: 0;
+    background-color: transparent; 
+    border-radius: 8px;
+    width: auto; 
+    flex-shrink: 0;
+    height: 300px; /* 웹캠 높이에 맞추기 */
+    justify-content: space-evenly; /* 버튼들을 균등하게 세로 배치 */
 }
 
 .color-btn {
@@ -689,6 +703,31 @@ hr {
         width: 100%;
     }
     
+    /* 💡 [수정] AR 뷰와 버튼을 세로로 전환 */
+    #ar-view-and-controls-wrapper {
+        flex-direction: column; /* 모바일에서 세로로 쌓기 */
+        gap: 20px;
+        max-width: 100%;
+    }
+    #ar-webcam-wrapper {
+        width: 100%; 
+        max-width: 400px;
+        height: auto; 
+    }
+    
+    /* 💡 [수정] 모바일에서 세 버튼을 가로로 배치 */
+    #color-selection-controls.vertical-group {
+        flex-direction: row; /* 모바일에서는 다시 가로로 배치 */
+        height: auto;
+        width: 100%;
+        max-width: 400px;
+        justify-content: space-between; 
+    }
+    #color-selection-controls.vertical-group .color-btn {
+        flex: 1; 
+        margin: 0 5px; 
+    }
+
     /* AR 버튼 반응형 */
     .ar-controls-group {
         flex-direction: column;
