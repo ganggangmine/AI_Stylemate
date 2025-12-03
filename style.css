@@ -1,13 +1,13 @@
-/* style.css - 최종 통합 버전 (반응형 및 AR 디자인 개선) */
+/* style.css - 최종 통합 버전 (헤더 및 버튼 디자인 원본 복원, AR Try-On 스타일 개선) */
 
 /* 변수 설정 */
 :root {
-    --gradient-start: #FFC0CB;          /* Light Pink */
-    --gradient-end: #ADD8E6;            /* Light Blue */
-    --main-text-color: #333333;
-    --h2-underline-color: linear-gradient(to right, #FFC0CB, #ADD8E6);
-    --card-bg: #FFFFFF;
-    --bg-light: #F8F9FA;
+    --gradient-start: #FFC0CB;        /* Light Pink */
+    --gradient-end: #ADD8E6;          /* Light Blue */
+    --main-text-color: #333333;       
+    --h2-underline-color: linear-gradient(to right, #FFC0CB, #ADD8E6); 
+    --card-bg: #FFFFFF;               
+    --bg-light: #F8F9FA;              
     --shadow-color: rgba(0, 0, 0, 0.1);
 
     --font-montserrat: 'Montserrat', sans-serif;
@@ -44,7 +44,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
+    min-height: 100vh; /* 전체 화면 채우기 */
 }
 
 header {
@@ -56,7 +56,7 @@ header {
     margin-bottom: 30px;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* 수직 가운데 정렬 */
 }
 
 .header-content-wrapper {
@@ -70,21 +70,22 @@ header {
 
 .header-text-group {
     flex-grow: 1; 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center;
+    display: flex; /* 내부 요소 정렬을 위해 flex 추가 */
+    flex-direction: column; /* 텍스트를 수직으로 쌓기 */
+    align-items: center; /* 텍스트 수평 가운데 정렬 */
 }
 
 .header-icons-left, .header-icons-right {
     display: flex;
     gap: 15px; 
+    /* 아이콘 그룹을 좌우 끝으로 밀기 */
     align-items: center;
 }
 
 .header-icon {
     width: 80px; 
     height: 80px;
-    filter: none;
+    filter: none; /* 아이콘 필터 제거 */
     opacity: 1.0; 
     transition: transform 0.2s;
 }
@@ -192,19 +193,19 @@ h2 .fas {
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
-    border-radius: 5px;
-    overflow: hidden;
+    border-radius: 5px; /* 전체 그룹의 둥근 모서리 */
+    overflow: hidden; /* 내부 버튼이 튀어나오지 않게 */
 }
 .mode-btn {
-    background-color: var(--card-bg);
+    background-color: var(--card-bg); /* 기본 흰색 */
     color: var(--main-text-color);
-    border: 1px solid var(--mode-button-border);
+    border: 1px solid var(--mode-button-border); /* 얇은 회색 테두리 */
     padding: 10px 20px;
-    margin: 0;
-    border-radius: 0;
+    margin: 0; /* 그룹 내부에서 마진 제거 */
+    border-radius: 0; /* 개별 버튼의 둥근 모서리 제거 */
     transition: all 0.2s;
     font-weight: 400;
-    flex-grow: 1;
+    flex-grow: 1; /* 각 버튼이 균등한 너비를 갖도록 */
 }
 .mode-btn:first-child {
     border-top-left-radius: 5px;
@@ -213,14 +214,14 @@ h2 .fas {
 .mode-btn:last-child {
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
-    border-left: none;
+    border-left: none; /* 중간 테두리 제거 */
 }
 .mode-btn.active {
     background: var(--mode-button-active-bg);
     color: var(--mode-button-active-text);
     border-color: transparent;
     font-weight: 600;
-    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.2); /* 활성 버튼에 내부 그림자 */
 }
 
 /* 모델 선택 버튼 스타일 */
@@ -228,7 +229,7 @@ h2 .fas {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 10px;
+    gap: 10px; /* 버튼 간 간격 */
     margin-top: 20px;
 }
 .model-select-btn { 
@@ -237,14 +238,14 @@ h2 .fas {
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     padding: 10px 15px; 
-    flex-grow: 1;
-    min-width: 150px;
+    flex-grow: 1; /* 버튼이 컨테이너 너비에 맞춰 확장 */
+    min-width: 150px; /* 최소 너비 */
 }
 .model-select-btn.active {
     background: var(--model-select-active-bg);
     color: var(--main-text-color);
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-    transform: scale(1.02);
+    transform: scale(1.02); /* 활성 시 약간 확대 */
 }
 
 /* 얼굴형 선택 버튼 그룹 스타일 */
@@ -259,7 +260,7 @@ h2 .fas {
 #style-selection-controls h3 {
     margin-bottom: 10px;
     font-size: 1.2em;
-    color: var(--primary-button-bg);
+    color: var(--primary-button-bg); /* 헤더 H1과 비슷한 그라데이션 */
 }
 
 .face-type-buttons {
@@ -270,7 +271,7 @@ h2 .fas {
     margin-top: 10px;
 }
 .face-select-btn {
-    background-color: var(--face-tone-select-btn-default-bg);
+    background-color: var(--face-tone-select-btn-default-bg); /* 기본 회색 */
     color: var(--face-tone-select-btn-default-text);
     padding: 10px 15px;
     border-radius: 5px;
@@ -414,7 +415,7 @@ hr {
     background-color: white;
     
     display: flex; 
-    flex-direction: column;
+    flex-direction: column; /* 이미지와 버튼이 깔끔하게 쌓이도록 column으로 변경 */
     gap: 10px; 
     align-items: center; 
 }
@@ -443,14 +444,15 @@ hr {
 
 /* 💡 AR 합성 체험 버튼 스타일 */
 .ar-try-on-btn {
-    background: linear-gradient(to right, #00BFFF, #3CB371);
+    background: linear-gradient(to right, #00BFFF, #3CB371); /* 밝은 파랑/초록 계열 */
     color: white;
     padding: 8px 15px;
     font-size: 0.9em;
     border-radius: 20px;
     margin-top: 5px; 
     box-shadow: 0 3px 6px rgba(0, 191, 255, 0.3);
-    width: auto;
+    width: auto; /* 1. max-width 제거하여 텍스트 길이에 맞게 자동 조절 */
+    /* max-width: 180px;  삭제 */
     transition: all 0.2s ease;
 }
 
@@ -472,18 +474,20 @@ hr {
 
 /* 이미지 영역 (200px 사각형) */
 .tone-image-column {
-    flex: 0 0 200px;
+    flex: 0 0 200px; /* 이미지 너비에 맞춰 크기 조정 */
     display: flex;
     justify-content: center;
-    align-items: center;
+    /* 💡 요청: 이미지가 너무 오른쪽으로 뜨지 않도록 중앙에 가깝게 조정 */
+    align-items: center; /* 수직 중앙 정렬 유지 */
 }
 
 .tone-image-column img {
+    /* 💡 요청: 톤 이미지 크기 800x481 비율 (200px x 120.25px) 및 사각형으로 조정 */
     width: 200px !important; 
-    height: 120.25px !important; 
+    height: 120.25px !important; /* 481/800 * 200 = 120.25 */
     max-width: 200px !important;
     object-fit: cover; 
-    border-radius: 6px;
+    border-radius: 6px; /* 💡 요청: 사각형으로 변경 (50% 제거, 6px 둥근 모서리) */
     border: 3px solid #FFC0CB;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     flex-shrink: 0; 
@@ -522,14 +526,14 @@ hr {
 }
 
 /* ---------------------------------------------------- */
-/* 🌟 3. AR 합성 체험 기능 스타일 (디자인 개선 및 반응형 수정) */
+/* 🌟 3. AR 합성 체험 기능 스타일 (디자인 개선) */
 /* ---------------------------------------------------- */
 #ar-container {
     margin-top: 30px; 
     padding: 25px;
     border: 2px solid #ADD8E6; 
     border-radius: 15px;
-    background-color: #f0f8ff;
+    background-color: #f0f8ff; /* 연한 하늘색 배경 */
     box-shadow: 0 4px 10px rgba(173, 216, 230, 0.5);
     display: flex;
     flex-direction: column;
@@ -550,36 +554,41 @@ hr {
     font-size: 0.9em;
 }
 
-/* ⭐ 수정 사항 1: AR 화면 중앙 정렬을 위한 래퍼 개선 */
+/* ⭐ 수정 사항: AR 화면 중앙 정렬 및 버튼 우측 배치 */
 #ar-view-and-controls-wrapper {
     display: flex; 
     gap: 15px;
     align-items: center; 
     margin-bottom: 20px;
     width: 100%;
+    /* 최대 너비를 늘려 화면을 중앙에 배치할 여유 공간 확보 */
     max-width: 900px; 
-    justify-content: center; /* Flexbox를 사용하여 전체 래퍼를 가운데 정렬 */
+    justify-content: center; /* 전체 래퍼를 가운데 정렬 */
 }
 
 #ar-webcam-wrapper {
     position: relative; 
     width: 400px; 
     height: 300px;
-    margin: 0; /* ⭐ 수정 사항 2: 비정상적인 margin-left 제거 */
+    margin: 0 auto;
     border-radius: 10px;
-    overflow: hidden;
+    overflow: hidden; /* 오버레이/비디오 경계 정리 */
     border: 4px solid #6a82fb;
     box-shadow: 0 0 10px rgba(106, 130, 251, 0.5);
-    /* margin: 0 auto; 는 ar-view-and-controls-wrapper가 처리하므로 여기서는 필요 없음 */
+    
+    /* 버튼 너비(약 120px) + 갭(15px)의 절반만큼 왼쪽으로 밀어 AR 화면을 시각적인 중앙에 위치시킵니다. */
+    /* (120 + 15) / 2 = 67.5px */
+    margin-left: 300px;
 }
+/* ⭐ /수정 사항 */
 
 #ar-webcam-video {
     width: 100%; 
     height: 100%; 
     object-fit: cover; 
-    border-radius: 0;
-    transform: scaleX(-1);
-    border: none;
+    border-radius: 0; /* 테두리는 wrapper에 적용했으므로 비디오 테두리 제거 */
+    transform: scaleX(-1); /* 거울 효과 */
+    border: none; /* 💡 요청: 비디오 자체의 테두리 제거 */
 }
 
 #ar-sticker-overlay {
@@ -590,7 +599,7 @@ hr {
     height: 100%; 
     object-fit: cover; 
     opacity: 1.0; 
-    pointer-events: none;
+    pointer-events: none; /* 클릭 방지 */
 }
 
 /* 🌟 새로 추가된 AR 컨트롤 그룹 스타일 */
@@ -603,6 +612,7 @@ hr {
 }
 
 #ar-screenshot-btn {
+    /* primary-btn의 기본 그라데이션 대신 다른 색상으로 강조 */
     background: linear-gradient(to right, #FFC0CB, #ADD8E6); 
     color: var(--main-text-color);
     font-weight: 700;
@@ -613,22 +623,26 @@ hr {
 }
 
 
-/* AR 컬러 선택 버튼 그룹 스타일 (세로 배치) */
+/* style (5).css 파일 (🌟 3. AR 합성 체험 기능 스타일 부분에 추가) */
+
+/* AR 컬러 선택 버튼 그룹 스타일 */
+/* 💡 [수정] 컬러 선택 버튼 그룹 (세로 배치 핵심) */
 #color-selection-controls.vertical-group {
     display: flex; 
-    flex-direction: column; 
-    gap: 15px; 
+    flex-direction: column; /* 세로 일렬 배치 */
+    gap: 15px; /* 버튼 간격 */
     margin: 0;
     padding: 0;
     background-color: transparent; 
     border-radius: 8px;
     width: auto; 
     flex-shrink: 0;
-    height: 300px;
-    justify-content: space-evenly;
+    height: 300px; /* 웹캠 높이에 맞추기 */
+    justify-content: space-evenly; /* 버튼들을 균등하게 세로 배치 */
 }
 
 .color-btn {
+    /* 기존 btn 스타일을 상속받되, 새로운 디자인 적용 */
     padding: 8px 15px;
     font-size: 0.9em;
     border-radius: 20px;
@@ -636,7 +650,7 @@ hr {
     background-color: #cccccc;
     color: var(--main-text-color);
     font-weight: 600;
-    flex-grow: 1;
+    flex-grow: 1; /* 버튼이 컨테이너 너비에 맞춰 확장 */
 }
 
 .color-btn[data-color="original"].active {
@@ -645,15 +659,14 @@ hr {
 }
 
 .color-btn[data-color="warm"].active {
-    background: linear-gradient(45deg, #FFD700, #FFA500);
+    background: linear-gradient(45deg, #FFD700, #FFA500); /* Warm Yellow/Orange */
     color: #333;
 }
 
 .color-btn[data-color="cool"].active {
-    background: linear-gradient(45deg, #4682B4, #87CEEB);
+    background: linear-gradient(45deg, #4682B4, #87CEEB); /* Cool Blue/Sky */
     color: white;
 }
-
 
 
 
@@ -751,3 +764,7 @@ hr {
         max-width: 300px;
     }
 }
+
+
+
+
