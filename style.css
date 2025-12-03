@@ -736,7 +736,7 @@ hr {
         height: 250px; /* 모바일에서 높이 조정 */
         max-width: 400px;
         /* ⭐ 수정 사항: 모바일에서는 margin-left: 300px를 제거하여 중앙 정렬 */
-        margin-left: 0; 
+        margin-left: -300; 
     }
     
     /* 💡 모바일에서 색상 선택 버튼을 가로로 배치 */
@@ -763,6 +763,7 @@ hr {
         max-width: 300px;
     }
 }
+
 
 
 
