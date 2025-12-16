@@ -15,15 +15,16 @@ let isRunning = false;
 let isInitialized = false; 
 let currentSource = 'webcam'; 
 
-// 💡 AR Try-On 관련 변수
-let arWebcamStream = null;
-const arWebcamVideo = document.getElementById("ar-webcam-video");
-const arStickerOverlay = document.getElementById("ar-sticker-overlay");
-const arContainer = document.getElementById("ar-container");
-// 💡 AR 컬러 변경 관련 변수 추가
-let currentStickerBaseName = ''; // 현재 스타일의 기본 이름 (예: oval_long)
-let currentStickerLength = ''; // 현재 스타일의 길이 (예: short 또는 long)
-// 🌟 스크린샷 버튼 DOM 요소 추가
+// ⚠️ 배포 후 터미널에 출력된 실제 Cloud Run 서비스 URL로 변경하세요!
+const CLOUD_RUN_API_URL = 'https://[SERVICE_NAME]-xxxxxx-uc.a.run.app/style-transfer'; 
+
+// 💡 현재 선택된 스타일 정보를 저장합니다.
+let currentSelectedLength = ''; // long or short
+let currentSelectedFaceType = ''; // oval, round, etc.
+let currentSelectedColor = 'original'; // warm, cool, original
+
+// 💡 AR Try-On 관련 변수 (GAN 통합 후 불필요하지만 구조 유지를 위해 간단히 둡니다)
+const arContainer = document.getElementById("ar-container");// 🌟 스크린샷 버튼 DOM 요소 추가
 const arScreenshotBtn = document.getElementById("ar-screenshot-btn");
 
 
@@ -127,15 +128,15 @@ document.addEventListener("DOMContentLoaded", () => {
             e.target.classList.add('active');
             const faceType = e.target.getAttribute('data-facetype');
             showRecommendation(faceType); 
-            // 💡 AR Try-On 정지
-            stopArTryOn();
+            // 💡 GAN Process 정지 및 결과 초기화
+            stopGANProcess();
         });
     });
 
-    // 💡 컬러 선택 버튼 리스너 추가
-    document.getElementById("color-original-btn").addEventListener("click", () => changeStickerColor("original"));
-    document.getElementById("color-warm-btn").addEventListener("click", () => changeStickerColor("warm"));
-    document.getElementById("color-cool-btn").addEventListener("click", () => changeStickerColor("cool"));
+    // 💡 컬러 선택 버튼 리스너 (GAN 서버 재호출용)
+    document.getElementById("color-original-btn").addEventListener("click", () => changeStyleColorAndCallGAN("original"));
+    document.getElementById("color-warm-btn").addEventListener("click", () => changeStyleColorAndCallGAN("warm"));
+    document.getElementById("color-cool-btn").addEventListener("click", () => changeStyleColorAndCallGAN("cool"));
     
     document.querySelectorAll('.tone-select-btn').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -144,25 +145,22 @@ document.addEventListener("DOMContentLoaded", () => {
             e.target.classList.add('active');
             const toneType = e.target.getAttribute('data-tonetype');
             showToneRecommendation(toneType); 
-             // 💡 AR Try-On 정지
-            stopArTryOn();
+             // 💡 GAN Process 정지 및 결과 초기화
+            stopGANProcess();
         });
     });
     
-    // 💡 AR Stop Button Listener
-    document.getElementById("ar-stop-button").addEventListener('click', stopArTryOn);
+    // 💡 AR Stop Button Listener -> GAN Stop Process
+    document.getElementById("ar-stop-button").addEventListener('click', stopGANProcess);
     
-    // 🌟 AR Screenshot Button Listener 등록
-    if (arScreenshotBtn) {
-        arScreenshotBtn.addEventListener('click', captureArScreenshot);
-    }
+    // 🌟 AR Screenshot Button Listener -> Download Result
+    document.getElementById("ar-screenshot-btn").addEventListener('click', captureGANResult);
     
     switchMode('webcam');
     
     document.getElementById("style-selection-controls").style.display = 'none';
     document.getElementById("tone-selection-controls").style.display = 'none';
 });
-
 
 // ===============================================
 // 3. Mode Switching Logic 
@@ -457,11 +455,17 @@ async function predict(modelToUse, modelName, element) {
 // 8. Manual Recommendation Output 
 // ===============================================
 
-// 얼굴형 추천 출력
+// 얼굴형 추천 출력 (GAN 서버 호출 버튼으로 대체)
 function showRecommendation(faceType) {
     const data = faceTypeData[faceType]; 
     const outputContainer = document.getElementById("recommendation-output");
     
+    currentSelectedFaceType = faceType; // 💡 현재 선택된 스타일 정보 저장
+    
+    stopGANProcess(); // 💡 GAN Process 정지 및 결과 초기화
+    
+    arContainer.style.display = 'flex'; // GAN Control & Result Container 표시
+
     if (!data) {
         outputContainer.innerHTML = `<p style="color:red;">Error: No recommendation data found for ${faceType}.</p>`;
         return;
@@ -477,24 +481,28 @@ function showRecommendation(faceType) {
                 <div class="style-column">
                     <h5><i class="fas fa-cut"></i> Short Hair: ${data.short}</h5>
                     <img src="${data.shortImage}" alt="${faceType} Short Hairstyle">
-                    <button class="btn ar-try-on-btn" data-sticker="${data.shortSticker}" data-face="${faceType}" data-length="short">AR sticker photo experience (Short)</button>
+                    <button class="btn cloud-run-btn ar-try-on-btn" data-length="short">AI Hairstyle Synthesis (Short)</button>
                 </div>
                 
                 <div class="style-column">
                     <h5><i class="fas fa-spa"></i> Long Hair: ${data.long}</h5>
                     <img src="${data.longImage}" alt="${faceType} Long Hairstyle">
-                    <button class="btn ar-try-on-btn" data-sticker="${data.longSticker}" data-face="${faceType}" data-length="long">AR sticker photo experience (Long)</button>
+                    <button class="btn cloud-run-btn ar-try-on-btn" data-length="long">AI Hairstyle Synthesis (Long)</button>
                 </div>
             </div>
+            <div id="gan-result-area" style="margin-top:20px; text-align:center;"></div>
         </div>
     `;
     outputContainer.innerHTML = recommendationHTML; 
     
-    // 💡 합성 버튼 이벤트 리스너 할당
-    document.querySelectorAll('.ar-try-on-btn').forEach(button => {
+    // 💡 합성 버튼 이벤트 리스너 할당 (GAN 서버 호출)
+    document.querySelectorAll('.cloud-run-btn').forEach(button => {
         button.addEventListener('click', (e) => {
-            const stickerPath = e.target.getAttribute('data-sticker');
-            startArTryOn(stickerPath);
+            const length = e.target.getAttribute('data-length');
+            currentSelectedLength = length; // 현재 길이 저장
+            
+            // ⭐ GAN 호출 시 현재 선택된 컬러 옵션까지 함께 전달
+            triggerCloudRunTransform(faceType, length, currentSelectedColor); 
         });
     });
 }
@@ -565,188 +573,127 @@ function updateModelInfo() {
 
 
 // ===============================================
-// 9. AR Try-On Logic (기존 핵심 기능)
+// 9. GAN 통합 로직 및 API 호출
 // ===============================================
 
-// AR 웹캠 활성화 및 스티커 오버레이
-async function startArTryOn(stickerPath) {
-    // 분석 웹캠이 실행 중이면 정지
-    if (isRunning) {
-        toggleAnalysis();
-    }
-    
-    // AR 컨테이너 표시
-    arContainer.style.display = 'block';
-    
-    // 스티커 이미지 설정
-    arStickerOverlay.src = stickerPath;
-    arStickerOverlay.style.display = 'block';
-
-    // 💡 [수정] 현재 스티커 기본 이름 및 길이 정보 저장 (파일명: oval_long_sticker.png 가정)
-    const parts = stickerPath.split('/');
-    const fileName = parts[parts.length - 1]; // 파일명 (예: oval_long_sticker.png)
-    
-    // 파일명에서 ".png"와 "_sticker"를 제거한 기본 스타일 이름 저장 (예: oval_long)
-    currentStickerBaseName = fileName.replace('.png', '').replace('_sticker', ''); 
-    
-    // 길이 정보 저장
-    currentStickerLength = currentStickerBaseName.includes('short') ? 'short' : 'long'; 
-
-    // 컬러 버튼 초기화 및 'Original' 활성화
-    document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById("color-original-btn").classList.add('active');
-    
-    // 웹캠 스트림 설정
-    try {
-        if (arWebcamStream) {
-            stopArWebcamStream(); // 기존 스트림이 있다면 정지
-        }
-        
-        arWebcamStream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                width: 400,
-                height: 300,
-                facingMode: "user" // 전면 카메라 사용
-            }
-        });
-
-        arWebcamVideo.srcObject = arWebcamStream;
-        arWebcamVideo.play();
-        
-        // 거울 효과를 위해 비디오 플립 (CSS에서 처리)
-        arWebcamVideo.style.transform = 'scaleX(-1)';
-        
-    } catch (err) {
-        console.error("AR Webcam activation error: ", err);
-        arContainer.innerHTML = '<p style="color:red;">⚠️ Unable to activate the webcam required for the AR experience. Please check your camera permissions.</p>';
-        stopArTryOn();
-    }
-}
-
-// AR 웹캠 스트림 정지
-function stopArWebcamStream() {
-    if (arWebcamStream) {
-        arWebcamStream.getTracks().forEach(track => {
-            track.stop();
-        });
-        arWebcamStream = null;
-    }
-    arWebcamVideo.srcObject = null;
-}
-
-// AR Try-On 전체 정지 및 UI 정리
-function stopArTryOn() {
-    stopArWebcamStream();
+// 💡 GAN 호출 중단 (분석 재개 용도)
+function stopGANProcess() {
     arContainer.style.display = 'none';
-    arStickerOverlay.style.display = 'none';
-    arStickerOverlay.src = "";
+    const ganResultArea = document.getElementById("gan-result-area");
+    if (ganResultArea) {
+        ganResultArea.innerHTML = '';
+    }
 }
 
-// script (9).js 파일 (9. AR Try-On Logic 부분에 추가)
-
-// AR 스티커 컬러를 변경하는 함수
-function changeStickerColor(colorType) {
-    if (!currentStickerBaseName) {
-        alert('AR Try-On을 먼저 시작해 주세요.');
+// 💡 컬러 변경 시 스타일 이름 업데이트 및 GAN 서버 재호출
+function changeStyleColorAndCallGAN(colorType) {
+    if (!currentSelectedFaceType || !currentSelectedLength) {
+        alert('먼저 얼굴형과 헤어 길이를 선택하여 합성을 시작해 주세요.');
         return;
     }
     
     // 버튼 클래스 업데이트
     document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector(`.color-btn[data-color="${colorType}"]`).classList.add('active');
-
-    let newStickerPath = '';
     
-    if (colorType === 'original') {
-        // 기본 이미지 경로: images/oval_long_sticker.png
-        // (기존 스티커 이미지는 여전히 "_sticker" 접미사를 가지고 있다고 가정)
-        newStickerPath = `images/${currentStickerBaseName}_sticker.png`; 
+    currentSelectedColor = colorType; // 현재 컬러 저장
+
+    // ⭐ 컬러가 바뀌면 GAN 서버를 다시 호출
+    triggerCloudRunTransform(currentSelectedFaceType, currentSelectedLength, currentSelectedColor); 
+}
+
+// 💡 GAN 결과 이미지 캡처 (다운로드 버튼)
+function captureGANResult() {
+    const resultImg = document.querySelector('#gan-result-area img');
+    if (resultImg && resultImg.src) {
+        const link = document.createElement('a');
+        link.href = resultImg.src;
+        // 다운로드 파일명에 스타일 정보 포함
+        link.download = `AI_GAN_Result_${currentSelectedFaceType}_${currentSelectedLength}_${currentSelectedColor}.jpeg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     } else {
-        // 컬러 이미지 경로: images/oval_long_warm.png (고객님 규칙 반영)
-        // currentStickerBaseName (예: oval_long) + colorType (예: warm)
-        newStickerPath = `images/${currentStickerBaseName}_${colorType}.png`;
+        alert("합성된 결과 이미지가 없습니다.");
+    }
+}
+
+// 💡 웹캠 캡처 함수 (이전과 동일)
+function getWebcamImageBase64() {
+    const webcamCanvas = webcam.canvas; 
+    if (!webcamCanvas) {
+        return null;
+    }
+    const dataURL = webcamCanvas.toDataURL('image/jpeg', 0.9);
+    return dataURL.split(',')[1];
+}
+
+// 💡 Cloud Run API 호출 함수
+function triggerCloudRunTransform(faceType, length, colorType) {
+    const webcamContainer = document.getElementById("webcam-container");
+    const ganResultArea = document.getElementById("gan-result-area");
+    
+    if (currentSource !== 'webcam' || !isRunning || !webcamContainer.firstChild) {
+        alert("⚠️ 딥러닝 변환을 위해 웹캠 모드를 실행하고 'Start Analysis' 상태여야 합니다.");
+        return;
     }
     
-    // 이미지 스티커 소스 업데이트
-    arStickerOverlay.src = newStickerPath;
-}
-
-
-// ===============================================
-// 10. AR Screenshot Logic (새로 추가된 기능)
-// ===============================================
-
-// 다운로드 처리 도우미 함수
-function triggerDownload(canvas) {
-    const dataURL = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = dataURL;
-    link.download = 'AI_StyleMate_AR_Screenshot_' + new Date().toISOString().slice(0, 10) + '.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    // canvas.remove(); // 캔버스 제거는 호출 측에서 처리
-}
-
-function captureArScreenshot() {
-    if (!arWebcamVideo || arWebcamVideo.paused || arWebcamVideo.ended || arContainer.style.display === 'none') {
-        alert('AR 웹캠이 실행 중이지 않습니다.');
+    const base64Image = getWebcamImageBase64();
+    if (!base64Image) {
+        alert("웹캠 캡처에 실패했습니다. 웹캠이 활성화되었는지 확인해주세요.");
         return;
     }
 
-    // 1. 캔버스 생성 및 크기 설정
-    const canvas = document.createElement('canvas');
-    // 비디오의 실제 해상도(400x300)를 사용
-    const videoWidth = arWebcamVideo.videoWidth; 
-    const videoHeight = arWebcamVideo.videoHeight;
-    canvas.width = videoWidth;
-    canvas.height = videoHeight;
-    const ctx = canvas.getContext('2d');
-
-    // 2. 웹캠 비디오 그리기 (거울 효과 적용)
-    // 웹캠 비디오는 CSS transform: scaleX(-1)로 좌우 반전되어 있으므로, 캔버스에도 동일하게 적용해야 합니다.
-    ctx.save(); // 현재 캔버스 상태 저장
-    ctx.translate(videoWidth, 0); // x축 이동
-    ctx.scale(-1, 1); // 좌우 반전
-    ctx.drawImage(arWebcamVideo, 0, 0, videoWidth, videoHeight);
-    ctx.restore(); // 변환 상태 초기화
-
-    // 3. 스티커 이미지 그리기
-    if (arStickerOverlay.style.display !== 'none' && arStickerOverlay.src) {
-        const stickerImg = new Image();
-        stickerImg.crossOrigin = "anonymous"; // CORS 문제 방지
-        
-        stickerImg.onload = () => {            
-            // ⭐ 핵심 수정 시작: 비율 유지 계산 (COVER 모드) ⭐
-            const imageRatio = stickerImg.naturalWidth / stickerImg.naturalHeight;
-            const containerRatio = videoWidth / videoHeight;
+    // 분석 루프 일시 정지 (서버 작업 중 브라우저 멈춤 방지)
+    toggleAnalysis(); 
+    
+    const styleName = `${length}-${faceType}`; // 서버가 요구하는 형식 (예: long-oval)
+    
+    const payload = {
+        image_base64: base64Image,
+        hairstyle_name: styleName, // 길이 + 얼굴형
+        color_option: colorType // 💡 추가된 컬러 옵션 (warm, cool, original)
+    };
+    
+    // 로딩 상태 및 메시지 표시
+    ganResultArea.innerHTML = '<div style="text-align:center;"><h4 style="color:#6a82fb;">⏳ AI 서버로 전송 중...</h4><p>HairFast 모델은 딥러닝 변환에 시간이 소요될 수 있습니다 (10~20초).</p></div>';
+    
+    fetch(CLOUD_RUN_API_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw new Error(err.error || `HTTP 오류: ${response.status}`); });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            const imageUrl = 'data:image/jpeg;base64,' + data.base64_image;
             
-            let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+            // 결과 이미지를 표시
+            const resultHTML = `
+                <div class="recommendation-content" style="text-align:center;">
+                    <h4>✅ 변환 완료! 스타일: ${styleName} (컬러: ${colorType})</h4>
+                    <img src="${imageUrl}" alt="AI Style Transfer Result" style="max-width: 100%; height: auto; border-radius: 10px; margin: 15px 0;">
+                </div>
+            `;
+            ganResultArea.innerHTML = resultHTML;
             
-            if (imageRatio > containerRatio) {
-                // 스티커가 컨테이너보다 넓은 경우: 높이를 꽉 채우고 좌우를 자름
-                drawHeight = videoHeight;
-                drawWidth = videoHeight * imageRatio;
-                offsetX = (videoWidth - drawWidth) / 2; // 수평 중앙 정렬 (잘린 부분)
-            } else {
-                // 스티커가 컨테이너보다 좁거나 같은 경우: 너비를 꽉 채우고 상하를 자름
-                drawWidth = videoWidth;
-                drawHeight = videoWidth / imageRatio;
-                offsetY = (videoHeight - drawHeight) / 2; // 수직 중앙 정렬 (잘린 부분)
-            }
-            // ⭐ 수정된 핵심: 비율을 유지한 채 중앙에 그립니다. ⭐
-            ctx.drawImage(stickerImg, offsetX, offsetY, drawWidth, drawHeight);
-
-            // 4. 다운로드 실행
-            triggerDownload(canvas);
-            canvas.remove();
-        };
-        stickerImg.src = arStickerOverlay.src;
-    } else {
-        // 스티커가 없는 경우 비디오만 다운로드
-        triggerDownload(canvas);
-        canvas.remove();
-    }
+        } else {
+            ganResultArea.innerHTML = `<p style="color:red;">❌ 변환 실패: ${data.error}</p>`;
+        }
+    })
+    .catch(error => {
+        console.error('API Error:', error);
+        ganResultArea.innerHTML = `<p style="color:red;">통신 중 오류 발생: ${error.message}</p>`;
+        // 분석이 중단되었으면 다시 시작할 수 있도록 버튼 상태 복구
+        document.getElementById("start-button").innerText = "▶️ Resume Analysis";
+    });
 }
 
 
