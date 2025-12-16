@@ -26,6 +26,36 @@ let currentStickerLength = ''; // 현재 스타일의 길이 (예: short 또는 
 // 🌟 스크린샷 버튼 DOM 요소 추가
 const arScreenshotBtn = document.getElementById("ar-screenshot-btn");
 
+// 💡 AR 스티커 변형 상태 변수
+const arStickerTransformContainer = document.getElementById('ar-sticker-transform-container');
+let currentScale = 1.0;
+let currentOffsetX = 0;
+let currentOffsetY = 0;
+const ZOOM_STEP = 0.1;
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 2.0;
+
+// 💡 드래그(이동) 관련 변수
+let isDragging = false;
+let startX, startY;
+
+// 💡 DOM 이벤트 리스너 함수
+function setupStickerControls() {
+    // 1. 확대/축소/리셋 버튼
+    document.getElementById("zoom-in-btn").addEventListener("click", () => adjustStickerTransform(ZOOM_STEP, 'zoom'));
+    document.getElementById("zoom-out-btn").addEventListener("click", () => adjustStickerTransform(-ZOOM_STEP, 'zoom'));
+    document.getElementById("reset-transform-btn").addEventListener("click", resetStickerTransform);
+
+    // 2. 이동 (마우스/터치)
+    arStickerTransformContainer.addEventListener('mousedown', startDrag);
+    arStickerTransformContainer.addEventListener('touchstart', startDrag);
+    
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('touchmove', drag);
+    
+    document.addEventListener('mouseup', stopDrag);
+    document.addEventListener('touchend', stopDrag);
+}
 
 // 💡 얼굴 감지 임계값 (필요 시 조정 가능)
 const FACE_DETECTION_THRESHOLD = 0.9; // 얼굴 감지 신뢰도
@@ -156,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (arScreenshotBtn) {
         arScreenshotBtn.addEventListener('click', captureArScreenshot);
     }
-    
+    setupStickerControls();
     switchMode('webcam');
     
     document.getElementById("style-selection-controls").style.display = 'none';
@@ -577,6 +607,8 @@ async function startArTryOn(stickerPath) {
     
     // AR 컨테이너 표시
     arContainer.style.display = 'block';
+    // 💡 [추가]: 스티커 변형 상태 초기화
+    resetStickerTransform();
     
     // 스티커 이미지 설정
     arStickerOverlay.src = stickerPath;
@@ -640,6 +672,8 @@ function stopArTryOn() {
     arContainer.style.display = 'none';
     arStickerOverlay.style.display = 'none';
     arStickerOverlay.src = "";
+    // 💡 [추가]: 스티커 변형 컨테이너 숨기기/초기화 (선택 사항)
+    resetStickerTransform();
 }
 
 // script (9).js 파일 (9. AR Try-On Logic 부분에 추가)
@@ -670,6 +704,102 @@ function changeStickerColor(colorType) {
     // 이미지 스티커 소스 업데이트
     arStickerOverlay.src = newStickerPath;
 }
+
+
+// 스티커 변형을 적용하는 핵심 함수
+function applyStickerTransform() {
+    arStickerTransformContainer.style.transform = 
+        `translate(${currentOffsetX}px, ${currentOffsetY}px) scale(${currentScale})`;
+}
+
+// 확대/축소 실행 함수
+function adjustStickerTransform(value, type) {
+    if (arContainer.style.display === 'none') return;
+
+    if (type === 'zoom') {
+        let newScale = currentScale + value;
+        // 최소/최대 확대/축소 비율 제한
+        if (newScale < MIN_SCALE) newScale = MIN_SCALE;
+        if (newScale > MAX_SCALE) newScale = MAX_SCALE;
+        currentScale = newScale;
+    }
+    // 'move' 타입은 드래그 로직에서 처리
+    
+    applyStickerTransform();
+}
+
+// 변형 리셋 함수
+function resetStickerTransform() {
+    if (arContainer.style.display === 'none') return;
+    
+    currentScale = 1.0;
+    currentOffsetX = 0;
+    currentOffsetY = 0;
+    applyStickerTransform();
+}
+
+
+// ------------------------------------
+// 드래그(이동) 로직
+// ------------------------------------
+
+function getClientPos(e) {
+    return e.touches ? {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+    } : {
+        x: e.clientX,
+        y: e.clientY
+    };
+}
+
+function startDrag(e) {
+    if (arContainer.style.display === 'none') return;
+    
+    const target = e.target.id;
+    // 스티커 오버레이를 드래그할 때만 작동
+    if (target !== 'ar-sticker-overlay' && target !== 'ar-sticker-transform-container') return;
+
+    e.preventDefault(); 
+    isDragging = true;
+    
+    const pos = getClientPos(e);
+    // 현재 마우스/터치 위치 저장
+    startX = pos.x;
+    startY = pos.y;
+    
+    // 드래그 중 커서 변경
+    arStickerTransformContainer.style.cursor = 'grabbing';
+}
+
+function drag(e) {
+    if (!isDragging) return;
+    e.preventDefault(); 
+    
+    const pos = getClientPos(e);
+    
+    // 이동 거리 계산
+    const deltaX = pos.x - startX;
+    const deltaY = pos.y - startY;
+    
+    // AR 웹캠 래퍼의 크기 (400x300) 대비 이동 비율을 적용
+    // (선택 사항: 더욱 부드러운 제어를 위해)
+    const factor = 1.5; 
+    currentOffsetX += deltaX * factor;
+    currentOffsetY += deltaY * factor;
+    
+    // 현재 위치 업데이트
+    startX = pos.x;
+    startY = pos.y;
+    
+    applyStickerTransform();
+}
+
+function stopDrag() {
+    isDragging = false;
+    arStickerTransformContainer.style.cursor = 'move';
+}
+
 
 
 // ===============================================
@@ -748,6 +878,7 @@ function captureArScreenshot() {
         canvas.remove();
     }
 }
+
 
 
 
