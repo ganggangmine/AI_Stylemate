@@ -819,62 +819,53 @@ function triggerDownload(canvas) {
 }
 
 function captureArScreenshot() {
-    if (!arWebcamVideo || arWebcamVideo.paused || arWebcamVideo.ended || arContainer.style.display === 'none') {
-        alert('AR 웹캠이 실행 중이지 않습니다.');
-        return;
-    }
-
+    // arWebcamVideo의 크기를 가져와 캔버스 크기로 사용합니다.
+    const videoWidth = arWebcamVideo.offsetWidth;
+    const videoHeight = arWebcamVideo.offsetHeight;
+    
     // 1. 캔버스 생성 및 크기 설정
     const canvas = document.createElement('canvas');
-    // 비디오의 실제 해상도(400x300)를 사용
-    const videoWidth = arWebcamVideo.videoWidth; 
-    const videoHeight = arWebcamVideo.videoHeight;
     canvas.width = videoWidth;
     canvas.height = videoHeight;
     const ctx = canvas.getContext('2d');
-
+    
     // 2. 웹캠 비디오 그리기 (거울 효과 적용)
-    // 웹캠 비디오는 CSS transform: scaleX(-1)로 좌우 반전되어 있으므로, 캔버스에도 동일하게 적용해야 합니다.
-    ctx.save(); // 현재 캔버스 상태 저장
-    ctx.translate(videoWidth, 0); // x축 이동
+    // 일반적으로 웹캠은 좌우 반전(거울 모드)이므로, 캔버스에도 동일하게 적용합니다.
+    ctx.save();
     ctx.scale(-1, 1); // 좌우 반전
-    ctx.drawImage(arWebcamVideo, 0, 0, videoWidth, videoHeight);
-    ctx.restore(); // 변환 상태 초기화
-
-// 3. 스티커 이미지 그리기
+    // 좌우 반전으로 인해 비디오를 그릴 시작 위치를 -videoWidth로 설정
+    ctx.drawImage(arWebcamVideo, -videoWidth, 0, videoWidth, videoHeight);
+    ctx.restore();
+    
+    // 3. 스티커 이미지 그리기 (사용자 변형 적용)
     if (arStickerOverlay.style.display !== 'none' && arStickerOverlay.src) {
         const stickerImg = new Image();
-        stickerImg.crossOrigin = "anonymous";
+        stickerImg.crossOrigin = "anonymous"; // CORS 문제 방지
         
         stickerImg.onload = () => {            
-            // ⭐ [수정 핵심]: AR Sticker Transform 값 캡처에 적용 ⭐
-            // 스티커는 웹캠 래퍼(400x300) 크기에 맞게 설정되어 있으므로, 캔버스 크기(400x300)를 기준으로 변형을 적용합니다.
             
-            // 캔버스 크기
-            const baseW = canvas.width;
-            const baseH = canvas.height;
+            // ⭐ [핵심 수정]: 캔버스 변형을 사용하여 납작함 수정 및 이동/확대 적용 ⭐
+            ctx.save(); // 스티커 변형을 위한 캔버스 상태 저장
             
-            // 스티커의 현재 변형 상태 적용
-            ctx.save(); // 현재 상태 저장
+            // 1. 사용자 이동(Translate) 적용
+            // CSS translate(X, Y)와 동일하게 적용합니다.
+            ctx.translate(currentOffsetX, currentOffsetY); 
             
-            // 캔버스 중앙으로 이동 (스티커가 중앙을 기준으로 확대/축소되도록)
-            ctx.translate(baseW / 2, baseH / 2);
+            // 2. 사용자 확대/축소(Scale) 적용
+            // CSS 변형의 기준점(origin)은 컨테이너 중앙(50% 50%)이므로, 
+            // 캔버스 좌표계를 중앙으로 이동 -> 확대/축소 -> 다시 복귀시켜 확대합니다.
             
-            // 확대/축소 값 적용
-            ctx.scale(currentScale, currentScale);
-            
-            // 이동 값 적용 (캔버스 중앙에서 다시 현재 오프셋만큼 이동)
-            ctx.translate(currentOffsetX / currentScale, currentOffsetY / currentScale);
-            
-            // 이미지 크기 설정 (스티커는 baseW/baseH를 100%로 가정하고 만들어졌으므로)
-            const imgWidth = baseW;
-            const imgHeight = baseH;
+            ctx.translate(videoWidth / 2, videoHeight / 2); // 캔버스 중앙으로 이동
+            ctx.scale(currentScale, currentScale);          // 확대/축소 적용
+            ctx.translate(-videoWidth / 2, -videoHeight / 2); // 원래 위치로 복귀 (중앙 정렬을 위한 offset)
 
-            // 이미지를 변형된 중앙에 그리기 (-width/2, -height/2)
-            ctx.drawImage(stickerImg, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+            
+            // 3. 스티커 이미지 그리기 (왜곡 없이 비디오 크기에 맞게)
+            // 스티커 이미지는 웹캠 래퍼 전체 크기에 맞춰 그리는 것이 기본입니다.
+            ctx.drawImage(stickerImg, 0, 0, videoWidth, videoHeight);
 
-            ctx.restore(); // 변형 상태 초기화
-
+            ctx.restore(); // 스티커 변형을 초기화하여 다음 작업에 영향을 주지 않도록 합니다.
+            
             // 4. 다운로드 실행
             triggerDownload(canvas);
             canvas.remove();
