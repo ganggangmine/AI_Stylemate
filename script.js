@@ -841,31 +841,39 @@ function captureArScreenshot() {
     ctx.drawImage(arWebcamVideo, 0, 0, videoWidth, videoHeight);
     ctx.restore(); // 변환 상태 초기화
 
-    // 3. 스티커 이미지 그리기
+// 3. 스티커 이미지 그리기
     if (arStickerOverlay.style.display !== 'none' && arStickerOverlay.src) {
         const stickerImg = new Image();
-        stickerImg.crossOrigin = "anonymous"; // CORS 문제 방지
+        stickerImg.crossOrigin = "anonymous";
         
         stickerImg.onload = () => {            
-            // ⭐ 핵심 수정 시작: 비율 유지 계산 (COVER 모드) ⭐
-            const imageRatio = stickerImg.naturalWidth / stickerImg.naturalHeight;
-            const containerRatio = videoWidth / videoHeight;
+            // ⭐ [수정 핵심]: AR Sticker Transform 값 캡처에 적용 ⭐
+            // 스티커는 웹캠 래퍼(400x300) 크기에 맞게 설정되어 있으므로, 캔버스 크기(400x300)를 기준으로 변형을 적용합니다.
             
-            let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
+            // 캔버스 크기
+            const baseW = canvas.width;
+            const baseH = canvas.height;
             
-            if (imageRatio > containerRatio) {
-                // 스티커가 컨테이너보다 넓은 경우: 높이를 꽉 채우고 좌우를 자름
-                drawHeight = videoHeight;
-                drawWidth = videoHeight * imageRatio;
-                offsetX = (videoWidth - drawWidth) / 2; // 수평 중앙 정렬 (잘린 부분)
-            } else {
-                // 스티커가 컨테이너보다 좁거나 같은 경우: 너비를 꽉 채우고 상하를 자름
-                drawWidth = videoWidth;
-                drawHeight = videoWidth / imageRatio;
-                offsetY = (videoHeight - drawHeight) / 2; // 수직 중앙 정렬 (잘린 부분)
-            }
-            // ⭐ 수정된 핵심: 비율을 유지한 채 중앙에 그립니다. ⭐
-            ctx.drawImage(stickerImg, offsetX, offsetY, drawWidth, drawHeight);
+            // 스티커의 현재 변형 상태 적용
+            ctx.save(); // 현재 상태 저장
+            
+            // 캔버스 중앙으로 이동 (스티커가 중앙을 기준으로 확대/축소되도록)
+            ctx.translate(baseW / 2, baseH / 2);
+            
+            // 확대/축소 값 적용
+            ctx.scale(currentScale, currentScale);
+            
+            // 이동 값 적용 (캔버스 중앙에서 다시 현재 오프셋만큼 이동)
+            ctx.translate(currentOffsetX / currentScale, currentOffsetY / currentScale);
+            
+            // 이미지 크기 설정 (스티커는 baseW/baseH를 100%로 가정하고 만들어졌으므로)
+            const imgWidth = baseW;
+            const imgHeight = baseH;
+
+            // 이미지를 변형된 중앙에 그리기 (-width/2, -height/2)
+            ctx.drawImage(stickerImg, -imgWidth / 2, -imgHeight / 2, imgWidth, imgHeight);
+
+            ctx.restore(); // 변형 상태 초기화
 
             // 4. 다운로드 실행
             triggerDownload(canvas);
